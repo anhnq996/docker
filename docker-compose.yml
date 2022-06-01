@@ -1,0 +1,147 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      args:
+          - "ENV=development"
+    env_file:
+      - .env.docker
+    image: wheel-api:dev
+    container_name: wheel-api
+    restart: unless-stopped
+    depends_on:
+      - mariadb-bootstrap
+      - redis-cluster
+      - mailhog
+    volumes:
+      - ".:/var/www/html"
+      - "/var/www/html/vendor"
+      - "/var/www/html/node_modules"
+      - "/var/www/html/.docker"
+      - "/var/www/html/.git"
+      - "/var/www/html/.idea"
+      - "/var/www/html/.vscode"
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+  mariadb-bootstrap:
+    image: bitnami/mariadb-galera
+    container_name: mariadb-bootstrap-wheel
+    restart: unless-stopped
+    environment:
+      - "MARIADB_GALERA_FORCE_SAFETOBOOTSTRAP=yes"
+      - "MARIADB_GALERA_CLUSTER_NAME=wheel-cluster"
+      - "MARIADB_GALERA_CLUSTER_BOOTSTRAP=yes"
+      - "MARIADB_GALERA_MARIABACKUP_USER=wheel_backup_user"
+      - "MARIADB_GALERA_MARIABACKUP_PASSWORD=XRG3pTI6GS4cSOBmoJa7WHj9"
+      - "MARIADB_REPLICATION_USER=wheel_replication_user"
+      - "MARIADB_REPLICATION_PASSWORD=MxOIX+deAqKp2n9uQlv1lr5a"
+      - "MARIADB_ROOT_PASSWORD=RUBZ/+NdoIb+cD8Lh3l1Nj3p"
+      - "MARIADB_DATABASE=wheel_db"
+      - "MARIADB_USER=wheel_user"
+      - "MARIADB_PASSWORD=jlwai+JBnCasdZlVtWj3o1s0"
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb-galera/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    volumes:
+      - "./.docker/data/mariadb/bootstrap:/bitnami/mariadb"
+    ports:
+      - "3307:3306"
+    networks:
+      - backend
+
+  mariadb-node:
+    image: bitnami/mariadb-galera
+    container_name: mariadb-node-wheel
+    restart: unless-stopped
+    depends_on:
+      - mariadb-bootstrap
+    environment:
+      - "MARIADB_GALERA_CLUSTER_NAME=wheel-cluster"
+      - "MARIADB_GALERA_CLUSTER_ADDRESS=gcomm://mariadb-bootstrap:4567,0.0.0.0:4567"
+      - "MARIADB_GALERA_MARIABACKUP_USER=wheel_backup_user"
+      - "MARIADB_GALERA_MARIABACKUP_PASSWORD=XRG3pTI6GS4cSOBmoJa7WHj9"
+      - "MARIADB_REPLICATION_USER=wheel_replication_user"
+      - "MARIADB_REPLICATION_PASSWORD=MxOIX+deAqKp2n9uQlv1lr5a"
+      - "MARIADB_ROOT_PASSWORD=RUBZ/+NdoIb+cD8Lh3l1Nj3p"
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb-galera/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    volumes:
+      - "./.docker/data/mariadb/node:/bitnami/mariadb"
+    networks:
+      - backend
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin-wheel
+    restart: unless-stopped
+    depends_on:
+      - mariadb-bootstrap
+    ports:
+     - "20082:80"
+    environment:
+      - "PMA_HOST=mariadb-bootstrap"
+      - "PMA_USER=wheel_user"
+      - "PMA_PASSWORD=jlwai+JBnCasdZlVtWj3o1s0"
+    networks:
+      - backend
+
+  redis-cluster:
+    image: bitnami/redis-cluster
+    container_name: redis-cluster-wheel
+    restart: unless-stopped
+    depends_on:
+      - redis-node
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_CLUSTER_REPLICAS=1"
+      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
+      - "REDIS_CLUSTER_CREATOR=yes"
+    networks:
+      - backend
+
+  redis-node:
+    image: bitnami/redis-cluster
+    deploy:
+      mode: replicated
+      replicas: 7
+    restart: unless-stopped
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
+    networks:
+      - backend
+
+  redisinsight:
+    image: redislabs/redisinsight
+    container_name: redisinsight-wheel
+    restart: unless-stopped
+    depends_on:
+      - redis-cluster
+    ports:
+      - "28002:8001"
+    networks:
+      - backend
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog-wheel
+    restart: unless-stopped
+    ports:
+      - "28026:8025"
+    networks:
+      - backend
+
+networks:
+  backend:
+    name: wheel-network
+    driver: bridge
