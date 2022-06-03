@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email');
             $table->string('phone')->nullable();
+            $table->string('password');
             $table->unsignedBigInteger('plan_id');
             $table->date('start_date');
             $table->date('end_date');
@@ -32,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('table_users');
+        Schema::dropIfExists('users');
     }
 };

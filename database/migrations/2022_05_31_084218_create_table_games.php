@@ -18,10 +18,10 @@ return new class extends Migration
             $table->string('code');
             $table->string('name');
             $table->string('description', 500);
-            $table->string('banner');
-            $table->string('background');
-            $table->text('email_template');
-            $table->text('rule');
+            $table->string('banner')->nullable();
+            $table->string('background')->nullable();
+            $table->text('email_template')->nullable();
+            $table->text('rule')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->tinyInteger('status')->default(1);
             $table->boolean('reward_use_image')->default(true);
@@ -39,6 +39,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('table_games');
+        Schema::dropIfExists('games');
     }
 };

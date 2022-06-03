@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +13,45 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['prefix' => 'v1', 'as' => 'v1.'], function () {
+
+    Route::group([
+        'prefix' => 'common.',
+        'as' => 'common.',
+        'namespace' => 'App\Http\Controllers\V1',
+    ], function () {
+        require_once __DIR__ . '/v1/common.php';
+    });
+
+    Route::group([
+        'prefix' => 'admin',
+        'as' => 'admin.',
+        'namespace' => 'App\Http\Controllers\V1',
+    ], function () {
+        require_once __DIR__ . '/v1/admin.php';
+    });
+
+    Route::group([
+        'prefix' => 'auth',
+        'as' => 'auth.',
+        'namespace' => 'App\Http\Controllers\V1',
+    ], function () {
+        require_once __DIR__ . '/v1/auth.php';
+    });
+
+    Route::group([
+        'prefix' => 'client',
+        'as' => 'client.',
+        'namespace' => 'App\Http\Controllers\V1',
+    ], function () {
+        require_once __DIR__ . '/v1/client.php';
+    });
+
+    Route::group([
+        'prefix' => 'guest',
+        'as' => 'guest.',
+        'namespace' => 'App\Http\Controllers\V1',
+    ], function () {
+        require_once __DIR__ . '/v1/guest.php';
+    });
 });

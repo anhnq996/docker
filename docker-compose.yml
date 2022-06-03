@@ -17,8 +17,6 @@ services:
       - mailhog
     volumes:
       - ".:/var/www/html"
-      - "/var/www/html/vendor"
-      - "/var/www/html/node_modules"
       - "/var/www/html/.docker"
       - "/var/www/html/.git"
       - "/var/www/html/.idea"
@@ -50,7 +48,7 @@ services:
       timeout: 5s
       retries: 6
     volumes:
-      - "./.docker/data/mariadb/bootstrap:/bitnami/mariadb"
+        - 'mariadb-storage:/var/lib/mysql'
     ports:
       - "3307:3306"
     networks:
@@ -145,3 +143,7 @@ networks:
   backend:
     name: wheel-network
     driver: bridge
+
+volumes:
+    mariadb-storage:
+        driver: local
