@@ -1,0 +1,163 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-headless
+  namespace: wheel-$ENV
+  labels:
+    app.kubernetes.io/name: redis-cluster
+    app.kubernetes.io/instance: wheel-$ENV
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: tcp-redis
+    - name: tcp-redis-bus
+      port: 16379
+      targetPort: tcp-redis-bus
+  selector:
+    app.kubernetes.io/name: redis-cluster
+    app.kubernetes.io/instance: wheel-$ENV
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+  namespace: wheel-$ENV
+  labels:
+    app.kubernetes.io/name: redis-cluster
+    app.kubernetes.io/instance: wheel-$ENV
+  annotations:
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: tcp-redis
+  selector:
+    app.kubernetes.io/name: redis-cluster
+    app.kubernetes.io/instance: wheel-$ENV
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  namespace: wheel-$ENV
+  labels:
+    app.kubernetes.io/name: redis-cluster
+    app.kubernetes.io/instance: wheel-$ENV
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-cluster
+      app.kubernetes.io/instance: wheel-$ENV
+  replicas: 1
+  serviceName: redis-cluster-headless
+  podManagementPolicy: "Parallel"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis-cluster
+        app.kubernetes.io/instance: wheel-$ENV
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        sysctls: [ ]
+      affinity:
+        podAffinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: redis-cluster
+                    app.kubernetes.io/instance: wheel-$ENV
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+      containers:
+        - name: redis-cluster
+          image: bitnami/redis-cluster
+          imagePullPolicy: "IfNotPresent"
+          command: [ '/bin/bash', '-c' ]
+          args:
+            - |
+              # Backwards compatibility change
+              if ! [[ -f /opt/bitnami/redis/etc/redis.conf ]]; then
+                  cp  /opt/bitnami/redis/etc/redis-default.conf /opt/bitnami/redis/etc/redis.conf
+              fi
+              podNameArr=($(echo "$(printenv POD_NAME)" | tr "-" "\n"))
+              if [[ "${podNameArr[-1]}" == "0" ]]; then
+                export REDIS_CLUSTER_CREATOR="yes"
+                export REDIS_CLUSTER_REPLICAS="1"
+              fi
+              /opt/bitnami/scripts/redis-cluster/entrypoint.sh /opt/bitnami/scripts/redis-cluster/run.sh
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_NODES
+              value: "redis-cluster-0.redis-cluster-headless redis-cluster-1.redis-cluster-headless redis-cluster-2.redis-cluster-headless redis-cluster-3.redis-cluster-headless redis-cluster-4.redis-cluster-headless redis-cluster-5.redis-cluster-headless"
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+          envFrom:
+            - configMapRef:
+                name: redis-cluster-env
+          ports:
+            - name: tcp-redis
+              containerPort: 6379
+            - name: tcp-redis-bus
+              containerPort: 16379
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - /scripts/ping_readiness_local.sh
+          livenessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - /scripts/ping_liveness_local.sh
+          resources:
+            limits: { }
+            requests: { }
+          volumeMounts:
+            - name: monitor-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: wheel-$ENV
+              mountPath: /bitnami/redis/data
+              subPathExpr: redis-cluster/$(POD_NAME)
+      volumes:
+        - name: monitor-scripts
+          configMap:
+            name: redis-cluster-scripts
+            defaultMode: 0777
+        - name: wheel-$ENV
+          glusterfs:
+            endpoints: glusterfs-cluster
+            path: wheel-$ENV
+            readOnly: false
+  updateStrategy:
+    type: RollingUpdate
