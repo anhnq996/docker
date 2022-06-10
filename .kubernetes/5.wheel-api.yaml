@@ -92,7 +92,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`api.vongxoay.vn`)
+    - match: Host(`api.vongquay.vn`)
       kind: Rule
       services:
         - name: wheel-api-srv
