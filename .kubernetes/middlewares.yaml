@@ -3,7 +3,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: xframe-header
-  namespace: ycare-$ENV
+  namespace: wheel-$ENV
 spec:
   headers:
     customResponseHeaders:
@@ -15,7 +15,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: cors-policy
-  namespace: ycare-$ENV
+  namespace: wheel-$ENV
 spec:
   headers:
     accessControlAllowMethods:
@@ -31,9 +31,9 @@ spec:
       - "Cache-Control"
       - "Authorization"
       - "Referer"
-      - "X-YCare-Latitude"
-      - "X-YCare-Longitude"
-      - "X-YCare-Device-Id"
+      - "X-wheel-Latitude"
+      - "X-wheel-Longitude"
+      - "X-wheel-Device-Id"
     accessControlMaxAge: 100
     addVaryHeader: true
 
@@ -42,7 +42,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: ratelimit-policy
-  namespace: ycare-$ENV
+  namespace: wheel-$ENV
 spec:
   rateLimit:
     average: 200
@@ -54,7 +54,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: redirectscheme
-  namespace: ycare-$ENV
+  namespace: wheel-$ENV
 spec:
   redirectScheme:
     scheme: https
@@ -65,7 +65,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: security-header
-  namespace: ycare-$ENV
+  namespace: wheel-$ENV
 spec:
   headers:
     sslRedirect: true
