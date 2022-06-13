@@ -1,84 +1,64 @@
-# Y-Care - Yakult
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
----
+<p align="center">
+<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-Thông qua điện thoại thông tin, vòng đeo tay,.. việc đọc các chỉ số sức khoẻ rất đơn giản và
-nhanh chóng. Vì vậy thật dễ dàng theo dõi sức khoẻ người thân thông qua ứng dụng.
+## About Laravel
 
-## Làm việc với docker
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-*Lệnh build image*
-```shell
-docker build -t zcr.rshcm.com/wheel/api:<version> . --build-arg ENV=production --no-cache
-```
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-*Push image lên Private Hub*
-```shell
-docker image push zcr.rshcm.com/wheel/api:<version>
-```
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Triển khai môi trường
+## Learning Laravel
 
-*Tạo Namespace*
-```shell
-ENV=production envsubst < 1.namespace.yaml | kubectl apply -f -
-```
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-*Tạo GlusterFS Endpoint*
-```shell
-ENV=production envsubst < 2.glusterfs-endpoint.yaml | kubectl apply -f -
-```
-- GlusterFS tạo sẵn volume `wheel-production`
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-*Cài đặt MariaDB Endpoint*
+## Laravel Sponsors
 
-```shell
-ENV=production envsubst < 3.mariadb-endpoint.yaml | kubectl apply -f -
-```
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
 
-*Cài đặt Redis Cluster*
-```shell
-kubectl create configmap --namespace=wheel-production redis-cluster-scripts \
-  --from-file=scripts/redis-cluster/ping_liveness_local.sh \
-  --from-file=scripts/redis-cluster/ping_readiness_local.sh
-```
+### Premium Partners
 
-```shell
-kubectl create configmap --namespace=wheel-production redis-cluster-env --from-env-file=.redis-cluster.env
-```
+- **[Vehikl](https://vehikl.com/)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Cubet Techno Labs](https://cubettech.com)**
+- **[Cyber-Duck](https://cyber-duck.co.uk)**
+- **[Many](https://www.many.co.uk)**
+- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
+- **[DevSquad](https://devsquad.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
+- **[OP.GG](https://op.gg)**
+- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
+- **[Lendio](https://lendio.com)**
 
-```shell
-ENV=production envsubst < 4.redis-cluster.yaml | kubectl apply -f -
-```
+## Contributing
 
-*Tạo giấy phép truy cập Private Registry*
-```shell
-kubectl create secret --namespace=wheel-production generic private-registry-credential \
-  --from-file=.dockerconfigjson=/root/.docker/config.json \
-  --type=kubernetes.io/dockerconfigjson
-```
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-## Triển khai source code
+## Code of Conduct
 
-### Triển khai mới
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-*Tạo Config Map từ .env file*
-```shell
-kubectl create configmap --namespace=wheel-production wheel-api-env --from-env-file=.wheel-api.env
-```
+## Security Vulnerabilities
 
-*Triển khai dịch vụ*
-```shell
-ENV=production VER=<version> envsubst < 5.wheel-api.yaml | kubectl apply -f -
-```
-### Cập nhật/ phục hồi phiên bản
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-*Cập nhật phiên bản*
-```shell
-kubectl set image --namespace=wheel-production deployment/wheel-api wheel-api-pod=zcr.rshcm.com/wheel/api:<new-version>
-```
+## License
 
-*Phục hồi phiên bản trước (nếu cập nhật lỗi)*
-```shell
-kubectl rollout undo --namespace=wheel-production deployment/wheel-api
-```
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

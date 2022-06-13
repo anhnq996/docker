@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     depends_on:
       - mariadb-bootstrap
-      - redis
+      - redis-cluster
       - mailhog
     volumes:
       - ".:/var/www/html"
@@ -93,51 +93,38 @@ services:
     networks:
       - backend
 
-  redis:
-    image: redis:latest
+  redis-cluster:
+    image: bitnami/redis-cluster
+    container_name: redis-cluster-wheel
+    restart: unless-stopped
+    depends_on:
+      - redis-node
     environment:
-        TZ: Asia/Ho_Chi_Minh
-    volumes:
-        - 'redis-storage:/data'
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_CLUSTER_REPLICAS=1"
+      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
+      - "REDIS_CLUSTER_CREATOR=yes"
     networks:
-        - backend
-    healthcheck:
-        test: [ 'CMD', 'redis-cli', 'ping' ]
-        retries: 3
-        timeout: 5s
+      - backend
 
-#  redis-cluster:
-#    image: bitnami/redis-cluster
-#    container_name: redis-cluster-wheel
-#    restart: unless-stopped
-#    depends_on:
-#      - redis-node
-#    environment:
-#      - "ALLOW_EMPTY_PASSWORD=yes"
-#      - "REDIS_CLUSTER_REPLICAS=1"
-#      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
-#      - "REDIS_CLUSTER_CREATOR=yes"
-#    networks:
-#      - backend
-
-#  redis-node:
-#    image: bitnami/redis-cluster
-#    deploy:
-#      mode: replicated
-#      replicas: 7
-#    restart: unless-stopped
-#    environment:
-#      - "ALLOW_EMPTY_PASSWORD=yes"
-#      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
-#    networks:
-#      - backend
+  redis-node:
+    image: bitnami/redis-cluster
+    deploy:
+      mode: replicated
+      replicas: 7
+    restart: unless-stopped
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
+    networks:
+      - backend
 
   redisinsight:
     image: redislabs/redisinsight
     container_name: redisinsight-wheel
     restart: unless-stopped
     depends_on:
-      - redis
+      - redis-cluster
     ports:
       - "28002:8001"
     networks:
@@ -159,6 +146,4 @@ networks:
 
 volumes:
     mariadb-storage:
-        driver: local
-    redis-storage:
         driver: local
