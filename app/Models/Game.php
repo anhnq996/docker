@@ -66,4 +66,69 @@ class Game extends Model
     {
         return $this->hasMany(GameReward::class, 'game_id');
     }
+
+    public function detail($request)
+    {
+        $id    = $request->get('id') ?? null;
+        $limit = $request->get('limit') ?? 20;
+
+        return $this->select([
+            'games.code',
+            'games.name',
+            'games.description',
+            'games.banner',
+            'games.background',
+            'games.email_template',
+            'games.rule',
+            'games.user_id',
+            'games.status',
+            'games.reward_use_image',
+            'games.start_at',
+            'games.end_at',
+            'games.redirect_url',
+            'games.created_at',
+            'games.updated_at'
+        ])
+            ->with('rewards')
+            ->where('id', $id)
+            ->paginate($limit);
+    }
+
+    public function listGame($request)
+    {
+        $keyword = $request->get('keyword') ?? null;
+        $limit   = $request->get('limit') ?? null;
+        $status  = $request->get('status') ?? null;
+
+        return $this->select([
+            'games.id',
+            'games.code',
+            'games.name',
+            'games.description',
+            'games.banner',
+            'games.background',
+            'games.email_template',
+            'games.rule',
+            'games.user_id',
+            'games.status',
+            'games.reward_use_image',
+            'games.start_at',
+            'games.end_at',
+            'games.redirect_url',
+            'games.created_at',
+            'games.updated_at'
+        ])
+        ->with('rewards')
+        ->when($keyword, function ($query) use ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('code', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('name', 'LIKE', '%' . $keyword . '%');
+            });
+        })
+        ->when($status, function ($query) use ($status) {
+            $query->where('status', $status);
+        })
+        ->paginate($limit);
+
+    }
 }

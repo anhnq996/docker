@@ -4,8 +4,17 @@ namespace App\Http\Controllers\V1\Admin;
 
 use App\Enums\ResponseCodes;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Plan\CreatePlanRequest;
+use App\Http\Requests\Plan\DeletePlanRequest;
+use App\Http\Requests\Plan\GetListPlanRequest;
+use App\Http\Requests\Plan\ListPlanRequest;
+use App\Http\Requests\Plan\SelectPlanRequest;
+use App\Http\Requests\Plan\UpdatePlanRequest;
+use App\Http\Resources\Plan\DetailPlanResource;
+use App\Http\Resources\Plan\ListPlanCollection;
 use App\Models\Plan;
 use App\Traits\ResponseTrait;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PlanController extends Controller
@@ -16,13 +25,12 @@ class PlanController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(ListPlanRequest $request)
     {
-        $plans = Plan::query()
-            ->select(['id', 'name', 'price', 'properties'])
-            ->get();
+        $plans = new Plan();
+        $plans = $plans->list($request);
 
-        $this->response(ResponseCodes::S1000, $plans);
+        return $this->response(ResponseCodes::S1000, ListPlanCollection::make($plans));
     }
 
     /**
@@ -31,12 +39,13 @@ class PlanController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CreatePlanRequest $request)
     {
         $data = $request->only(['name', 'price', 'properties']);
         $plan = new Plan();
         $plan->fill($data);
         $plan->save();
+
         return $this->response(ResponseCodes::S1000);
     }
 
@@ -46,13 +55,14 @@ class PlanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(GetListPlanRequest $request)
     {
         $plan = Plan::query()
-            ->where('id', $id)
             ->select(['id', 'name', 'price', 'properties'])
+            ->where('id', $request->get('id'))
             ->first();
-        $this->response(ResponseCodes::S1000, $plan);
+
+        return $this->response(ResponseCodes::S1000, DetailPlanResource::make($plan));
     }
 
     /**
@@ -62,12 +72,13 @@ class PlanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdatePlanRequest $request)
     {
         $data = $request->only(['name', 'price', 'properties']);
-        $plan = new Plan();
-        $plan->fill($data);
-        $plan->save();
+
+        Plan::query()->find($request->get('id'))
+            ->update($data);
+
         return $this->response(ResponseCodes::S1000);
     }
 
@@ -77,9 +88,27 @@ class PlanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(DeletePlanRequest $request)
     {
-        Plan::query()->find($id)->delete();
+        Plan::query()->find($request->get('id'))
+            ->delete();
+
         return $this->response(ResponseCodes::S1000);
+    }
+
+    /**
+     *
+     * @param \App\Http\Requests\Plan\SelectPlanRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function select(SelectPlanRequest $request): JsonResponse
+    {
+        $keyword = $request->get('keyword') ?? null;
+
+        return $this->response(ResponseCodes::S1000, Plan::query()->select(['id', 'name', 'price'])
+            ->when($keyword, function ($query) use ($keyword) {
+                $query->where('name', 'LIKE', '%' . $keyword . '%');
+            })->get()
+        );
     }
 }

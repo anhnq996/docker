@@ -36,4 +36,18 @@ class Authenticate extends Middleware
             'Unauthenticated.', $guards, $this->redirectTo($request)
         );
     }
+
+    /**
+     * Determine if the user is logged in to any of the given guards.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  array  $guards
+     * @return void
+     *
+     * @throws \Illuminate\Auth\AuthenticationException
+     */
+    protected function authenticate($request, array $guards)
+    {
+        parent::authenticate($request, $guards);
+    }
 }

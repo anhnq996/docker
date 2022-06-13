@@ -16,6 +16,8 @@ use App\Http\Requests\API\Mobile\GoogleAccount\GoogleAccountCheckRequest;
 use App\Http\Requests\API\Mobile\GoogleAccount\GoogleAccountUpdatePhoneRequest;
 use App\Http\Requests\API\ResetPasswordRequest;
 use App\Http\Requests\API\VerifyTokenRequest;
+use App\Http\Requests\Auth\LoginRequest as AuthLoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\ResetPasswordMailable;
 use App\Models\Clinic;
@@ -55,7 +57,7 @@ class AuthController extends Controller
      * @return JsonResponse
      * @throws Exception
      */
-    public function login(Request $request): JsonResponse
+    public function login(AuthLoginRequest $request): JsonResponse
     {
         $username = $request->get('username');
         $password = $request->get('password');
@@ -90,104 +92,114 @@ class AuthController extends Controller
         return $this->getUserInfo($user);
     }
 
-    /**
-     * @param ForgotPasswordRequest $request
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    public function register(RegisterRequest $request): JsonResponse
     {
-        // Check input
-        if (!isset($request->username) || !isset($request->user_type)) {
-            return $this->response(Codes::E2015());
-        }
+        $data = $request->all();
+        $data['password'] = bcrypt($request->get('password'));
 
-        $userType = UserType::tryFrom($request->user_type);
-        $params = $request->only('username', 'user_type');
-        $arrayUserStatus = [UserStatus::active()->value, UserStatus::otpVerified()->value];
-        $conditions = UserType::user()->equals($userType)
-            ? ['username' => $params['username'], 'type' => UserType::from($userType)]
-            : ['email' => $params['username']];
+        User::query()->create($data);
 
-        $dataUser = match ($userType?->value) {
-            UserType::user()->value => $this->user->findUser($conditions, $arrayUserStatus),
-            UserType::clinic()->value => $this->clinic->findClinic($conditions, $arrayUserStatus),
-            UserType::staff()->value => $this->staff->findStaff($conditions, $arrayUserStatus),
-            UserType::doctor()->value => $this->doctor->findDoctor($conditions, $arrayUserStatus),
-        };
-
-        if (!$dataUser) {
-            return $this->response(
-                UserType::user()->equals($userType) ? Codes::E2001() : Codes::E2002()
-            );
-        }
-
-        [$codes, $data] = UserType::user()->equals($userType)
-            ? $this->handleForgotPasswordUser($params, $dataUser)
-            : $this->handleForgotPasswordAdmin($params, $dataUser);
-
-        return $this->response($codes, $data);
+        return $this->response(ResponseCodes::S1000);
     }
 
-    /**
-     * @param $params
-     * @param $thisUser
-     * @return array
-     * @throws Exception
-     */
-    public function handleForgotPasswordUser($params, $thisUser): array
-    {
-        $otpType = OtpType::change_pw();
-        if ($this->otpService->isBanned($params['username'], $otpType)) {
-            return [Codes::E1068(), null];
-        }
+    // /**
+    //  * @param ForgotPasswordRequest $request
+    //  * @return JsonResponse
+    //  * @throws Exception
+    //  */
+    // public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    // {
+    //     // Check input
+    //     if (!isset($request->username) || !isset($request->user_type)) {
+    //         return $this->response(Codes::E2015());
+    //     }
 
-        // Send new OTP
-        $this->otpService->send(
-            $params['username'], $otpType, $thisUser->id
-        );
+    //     $userType = UserType::tryFrom($request->user_type);
+    //     $params = $request->only('username', 'user_type');
+    //     $arrayUserStatus = [UserStatus::active()->value, UserStatus::otpVerified()->value];
+    //     $conditions = UserType::user()->equals($userType)
+    //         ? ['username' => $params['username'], 'type' => UserType::from($userType)]
+    //         : ['email' => $params['username']];
 
-        return [Codes::S1000(), [
-            'user_id' => $thisUser->id,
-            'username' => $thisUser->username,
-            'user_type' => $thisUser->type,
-        ]];
-    }
+    //     $dataUser = match ($userType?->value) {
+    //         UserType::user()->value => $this->user->findUser($conditions, $arrayUserStatus),
+    //         UserType::clinic()->value => $this->clinic->findClinic($conditions, $arrayUserStatus),
+    //         UserType::staff()->value => $this->staff->findStaff($conditions, $arrayUserStatus),
+    //         UserType::doctor()->value => $this->doctor->findDoctor($conditions, $arrayUserStatus),
+    //     };
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function logout(Request $request): JsonResponse
-    {
-        try {
-            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-            auth()->user()->currentAccessToken()->delete();
+    //     if (!$dataUser) {
+    //         return $this->response(
+    //             UserType::user()->equals($userType) ? Codes::E2001() : Codes::E2002()
+    //         );
+    //     }
 
-            // remove firebase token when logout
-            if (!empty($request->headers?->get('authorization'))) {
-                $token = array_reverse(explode(' ', $request->headers->get('authorization')))[0] ?? null;
-                FirebaseToken::query()->where('user_token', $token)->delete();
-            }
+    //     [$codes, $data] = UserType::user()->equals($userType)
+    //         ? $this->handleForgotPasswordUser($params, $dataUser)
+    //         : $this->handleForgotPasswordAdmin($params, $dataUser);
 
-            return $this->response(Codes::S1000());
-        } catch (Exception $exception) {
-            Log::error($exception);
-            return $this->response(Codes::E1001());
-        }
-    }
+    //     return $this->response($codes, $data);
+    // }
 
-    /**
-     * @return JsonResponse
-     */
-    public function getPrefixMobile(): JsonResponse
-    {
-        // Viettel, Vina, Mobi, VietnamMobile, GMobie
-        /** @var Setting $setting */
-        $setting = Setting::query()->where('key', 'allow_prefix_phone')->firstOrNew();
-        $prefixPhone = $setting?->value ? explode(',', $setting->value) : [];
-        return $this->response(Codes::S1000(), ['prefix' => $prefixPhone]);
-    }
+    // /**
+    //  * @param $params
+    //  * @param $thisUser
+    //  * @return array
+    //  * @throws Exception
+    //  */
+    // public function handleForgotPasswordUser($params, $thisUser): array
+    // {
+    //     $otpType = OtpType::change_pw();
+    //     if ($this->otpService->isBanned($params['username'], $otpType)) {
+    //         return [Codes::E1068(), null];
+    //     }
+
+    //     // Send new OTP
+    //     $this->otpService->send(
+    //         $params['username'], $otpType, $thisUser->id
+    //     );
+
+    //     return [Codes::S1000(), [
+    //         'user_id' => $thisUser->id,
+    //         'username' => $thisUser->username,
+    //         'user_type' => $thisUser->type,
+    //     ]];
+    // }
+
+    // /**
+    //  * @param Request $request
+    //  * @return JsonResponse
+    //  */
+    // public function logout(Request $request): JsonResponse
+    // {
+    //     try {
+    //         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
+    //         auth()->user()->currentAccessToken()->delete();
+
+    //         // remove firebase token when logout
+    //         if (!empty($request->headers?->get('authorization'))) {
+    //             $token = array_reverse(explode(' ', $request->headers->get('authorization')))[0] ?? null;
+    //             FirebaseToken::query()->where('user_token', $token)->delete();
+    //         }
+
+    //         return $this->response(Codes::S1000());
+    //     } catch (Exception $exception) {
+    //         Log::error($exception);
+    //         return $this->response(Codes::E1001());
+    //     }
+    // }
+
+    // /**
+    //  * @return JsonResponse
+    //  */
+    // public function getPrefixMobile(): JsonResponse
+    // {
+    //     // Viettel, Vina, Mobi, VietnamMobile, GMobie
+    //     /** @var Setting $setting */
+    //     $setting = Setting::query()->where('key', 'allow_prefix_phone')->firstOrNew();
+    //     $prefixPhone = $setting?->value ? explode(',', $setting->value) : [];
+    //     return $this->response(Codes::S1000(), ['prefix' => $prefixPhone]);
+    // }
 
     /**
      * @param string $type
@@ -213,95 +225,95 @@ class AuthController extends Controller
         ));
     }
 
-    /**
-     * @param GoogleAccountCheckRequest $request
-     * @return JsonResponse
-     */
-    public function checkGoogleId(GoogleAccountCheckRequest $request): JsonResponse
-    {
-        $userConnectGoogle = User::query()->where('google_id', $request->get('google_id'))->first();
+    // /**
+    //  * @param GoogleAccountCheckRequest $request
+    //  * @return JsonResponse
+    //  */
+    // public function checkGoogleId(GoogleAccountCheckRequest $request): JsonResponse
+    // {
+    //     $userConnectGoogle = User::query()->where('google_id', $request->get('google_id'))->first();
 
-        if (empty($userConnectGoogle)) {
-            return $this->response(Codes::S1000(), [
-                'status' => false,
-                'google_id' => $request->get('google_id'),
-            ]);
-        }
+    //     if (empty($userConnectGoogle)) {
+    //         return $this->response(Codes::S1000(), [
+    //             'status' => false,
+    //             'google_id' => $request->get('google_id'),
+    //         ]);
+    //     }
 
-        $userConnectGoogle->load('userInfo');
-        $isUser = str_contains($request->userAgent(), '(dart:io)');
-        $firebaseToken = $request->get('firebase_token');
+    //     $userConnectGoogle->load('userInfo');
+    //     $isUser = str_contains($request->userAgent(), '(dart:io)');
+    //     $firebaseToken = $request->get('firebase_token');
 
-        return $this->getUserInfo($userConnectGoogle, $isUser, $firebaseToken);
-    }
+    //     return $this->getUserInfo($userConnectGoogle, $isUser, $firebaseToken);
+    // }
 
-    /**
-     * @param GoogleAccountUpdatePhoneRequest $request
-     * @return JsonResponse
-     */
-    public function updatePhone(GoogleAccountUpdatePhoneRequest $request): JsonResponse
-    {
-        $phone = $request->get('phone');
-        $googleAccount = User::query()->where('google_id', $request->get('google_id'))->exists();
-        $user = User::query()->where('username', $request->get('phone'))
-            ->where('type', UserType::user())
-            ->first();
+    // /**
+    //  * @param GoogleAccountUpdatePhoneRequest $request
+    //  * @return JsonResponse
+    //  */
+    // public function updatePhone(GoogleAccountUpdatePhoneRequest $request): JsonResponse
+    // {
+    //     $phone = $request->get('phone');
+    //     $googleAccount = User::query()->where('google_id', $request->get('google_id'))->exists();
+    //     $user = User::query()->where('username', $request->get('phone'))
+    //         ->where('type', UserType::user())
+    //         ->first();
 
-        if (!$user) {
-            $setting = Setting::query()->where('key', 'allow_prefix_phone')->first();
-            $prefixPhone = $setting?->value ? explode(',', $setting->value) : [];
+    //     if (!$user) {
+    //         $setting = Setting::query()->where('key', 'allow_prefix_phone')->first();
+    //         $prefixPhone = $setting?->value ? explode(',', $setting->value) : [];
 
-            if (count($prefixPhone) > 0 && !in_array(substr($phone, 0, 3), $prefixPhone)) {
-                return $this->response(Codes::E2026());
-            }
+    //         if (count($prefixPhone) > 0 && !in_array(substr($phone, 0, 3), $prefixPhone)) {
+    //             return $this->response(Codes::E2026());
+    //         }
 
-            // Get user by phone number and type
-            /** @var User $user */
-            $user = User::query()->firstOrNew([
-                'username' => $phone,
-                'type' => UserType::user()->value,
-            ], [
-                'status' => UserStatus::registered()->value,
-            ]);
+    //         // Get user by phone number and type
+    //         /** @var User $user */
+    //         $user = User::query()->firstOrNew([
+    //             'username' => $phone,
+    //             'type' => UserType::user()->value,
+    //         ], [
+    //             'status' => UserStatus::registered()->value,
+    //         ]);
 
-            // User registered
-            if (!in_array($user->status->value, [
-                UserStatus::registered()->value,
-                UserStatus::otpVerified()->value,
-            ], true)) {
-                return $this->response(Codes::E1005());
-            }
+    //         // User registered
+    //         if (!in_array($user->status->value, [
+    //             UserStatus::registered()->value,
+    //             UserStatus::otpVerified()->value,
+    //         ], true)) {
+    //             return $this->response(Codes::E1005());
+    //         }
 
-            // Update password
-            $user->password = Str::random(10);
-            $user->assignRole('user');
-            $user->save();
+    //         // Update password
+    //         $user->password = Str::random(10);
+    //         $user->assignRole('user');
+    //         $user->save();
 
-            // Send OTP into phone number
-            $this->otpService->send(
-                $user->username, OtpType::register(), $user->id
-            );
+    //         // Send OTP into phone number
+    //         $this->otpService->send(
+    //             $user->username, OtpType::register(), $user->id
+    //         );
 
-            return $this->response(Codes::S1000(), [
-                'otp_type' => OtpType::register()->value,
-                'user_id' => $user->id,
-            ]);
-        } else {
-            // Send OTP into phone number
-            $otp = $this->otpService->send(
-                $user->username, OtpType::connect_google(), $user->id
-            );
+    //         return $this->response(Codes::S1000(), [
+    //             'otp_type' => OtpType::register()->value,
+    //             'user_id' => $user->id,
+    //         ]);
+    //     } else {
+    //         // Send OTP into phone number
+    //         $otp = $this->otpService->send(
+    //             $user->username, OtpType::connect_google(), $user->id
+    //         );
 
-            if ($otp instanceof Codes) {
-                return $this->response($otp);
-            }
+    //         if ($otp instanceof Codes) {
+    //             return $this->response($otp);
+    //         }
 
-            return $this->response(Codes::S1000(), [
-                'otp_type' => OtpType::connect_google(),
-                'user_id' => $user->id,
-            ]);
-        }
-    }
+    //         return $this->response(Codes::S1000(), [
+    //             'otp_type' => OtpType::connect_google(),
+    //             'user_id' => $user->id,
+    //         ]);
+    //     }
+    // }
 
     /**
      * @return string
