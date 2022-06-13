@@ -1,0 +1,106 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: wheel-api
+  namespace: wheel-$ENV
+  labels:
+    name: wheel-api-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wheel-api-pod
+  template:
+    metadata:
+      labels:
+        app: wheel-api-pod
+    spec:
+      imagePullSecrets:
+        - name: private-registry-credential
+      containers:
+        - name: wheel-api-pod
+          image: zcr.rshcm.com/wheel/api:$VER
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              memory: 100Mi
+              cpu: 100m
+          envFrom:
+            - configMapRef:
+                name: wheel-api-env
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: wheel-$ENV
+              mountPath: /var/www/html/storage
+              subPath: api-storage
+      volumes:
+        - name: wheel-$ENV
+          glusterfs:
+            endpoints: glusterfs-cluster
+            path: wheel-$ENV
+            readOnly: false
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: wheel-api
+  namespace: wheel-$ENV
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: wheel-api
+  minReplicas: 1
+  maxReplicas: 24
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wheel-api-srv
+  namespace: wheel-$ENV
+spec:
+  type: ClusterIP
+  selector:
+    app: wheel-api-pod
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wheel-api-ingress
+  namespace: wheel-$ENV
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`api.vongquay.vn`)
+      kind: Rule
+      services:
+        - name: wheel-api-srv
+          port: 80
+      middlewares:
+        - name: cors-policy
+        - name: ratelimit-policy
+        - name: redirectscheme
+        - name: security-header
+  tls:
+    certResolver: esd-resolver
