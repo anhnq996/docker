@@ -33,7 +33,7 @@ spec:
                 name: wheel-api-env
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
           volumeMounts:
             - name: wheel-$ENV
               mountPath: /var/www/html/storage
@@ -79,7 +79,7 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 80
+      port: 8080
 
 ---
 apiVersion: traefik.containo.us/v1alpha1
@@ -96,7 +96,7 @@ spec:
       kind: Rule
       services:
         - name: wheel-api-srv
-          port: 80
+          port: 8080
       middlewares:
         - name: cors-policy
         - name: ratelimit-policy
