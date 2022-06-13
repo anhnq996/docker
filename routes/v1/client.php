@@ -19,7 +19,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['prefix' => 'games', 'as' => 'games', 'middleware' => 'auth:sanctum'], function () {
+Route::group(['prefix' => 'games', 'as' => 'games', 'middleware' => 'auth:sanctum,guest'], function () {
     Route::post('list', [GameController::class, 'index'])->name('list');
-    Route::post('show/{id}', [GameController::class, 'show'])->name('show');
+    Route::post('create-winner', [GameController::class, 'createWinner'])->name('create');
+    Route::post('dial', [GameController::class, 'dial'])->name('dial');
 });

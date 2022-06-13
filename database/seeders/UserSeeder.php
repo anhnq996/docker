@@ -39,7 +39,8 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            User::query()->firstOrCreate(['id' => $user['id']], $user);
+            $user = User::query()->firstOrCreate(['id' => $user['id']], $user);
+            $user->assignRole('administrator');
         }
     }
 }
