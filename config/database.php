@@ -145,6 +145,13 @@ return [
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
 
+        'address-parser' => [[
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'port' => env('REDIS_PORT', '6379'),
+            'password' => env('REDIS_PASSWORD', null),
+            'database' => env('REDIS_ADDRESS_PARSER_DB', '2'),
+        ]],
+
 //        'clusters' => [
 //            'default' => [[
 //                'host' => env('REDIS_HOST', '127.0.0.1'),
