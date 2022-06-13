@@ -62,7 +62,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`db.y-care.vn`)
+    - match: Host(`db.vongquay.vn`)
       kind: Rule
       services:
         - name: phpmyadmin-srv
@@ -124,7 +124,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`redis.y-care.vn`)
+    - match: Host(`redis.vongquay.vn`)
       kind: Rule
       services:
         - name: redisinsight-srv
