@@ -26,7 +26,7 @@ Route::group(['prefix' => 'v1', 'as' => 'v1.'], function () {
     Route::group([
         'prefix' => 'admin',
         'as' => 'admin.',
-        'namespace' => 'App\Http\Controllers\V1',
+        'namespace' => 'App\Http\Controllers\V1\Admin',
     ], function () {
         require_once __DIR__ . '/v1/admin.php';
     });
@@ -42,7 +42,7 @@ Route::group(['prefix' => 'v1', 'as' => 'v1.'], function () {
     Route::group([
         'prefix' => 'client',
         'as' => 'client.',
-        'namespace' => 'App\Http\Controllers\V1',
+        'namespace' => 'App\Http\Controllers\V1\Client',
     ], function () {
         require_once __DIR__ . '/v1/client.php';
     });
