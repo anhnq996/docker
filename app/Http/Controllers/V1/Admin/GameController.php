@@ -74,7 +74,7 @@ class GameController extends Controller
                 $image           = $this->uploadImage($request->file('image'), 'image');
                 $reward['image'] = $image['path'];
             }
-            $rewardInsert = [
+            $rewardInsert[] = [
                 'name'       => $reward['quantity'],
                 'image'      => $reward['image'],
                 'quantity'   => $reward['quantity'],
@@ -204,8 +204,11 @@ class GameController extends Controller
     {
         // set redis for game
         $rewardIdArr = GameReward::query()->where('game_id', $gameID)->get();
+        $rewardIds   = null;
         foreach ($rewardIdArr as $reward) {
+            $rewardIds = $rewardIds ? $rewardIds . ',' . $reward->id : $reward->id;
             Redis::set('reward_' . $reward->id, $reward->quantity . '/' . $reward->percent);
         }
+        Redis::set('game_' . $gameID, $rewardIds);
     }
 }

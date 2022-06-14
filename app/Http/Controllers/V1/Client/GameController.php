@@ -103,30 +103,28 @@ class GameController extends Controller
         if (Redis::exists("reward_$rewardID")) {
             $rewards  = explode('/', Redis::get("reward_$rewardID"));
             if ($rewards[0] == 0) {
-                $this->createRedis($request->get('game_id'), $rewardID);
+                Redis::del("reward_$rewardID");
+                $this->createRedis($request->get('game_id'));
             }
             $quantity = $rewards[0] - 1;
             Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
         }
 
-        $reward = GameReward::query()->find($rewardID);
-
         return $this->response(ResponseCodes::S1000, [
-            'id'      => $reward->id,
-            'game_id' => $reward->game_id,
-            'name'    => $reward->name,
+            'id'      => $rewardID,
+            'game_id' => $request->get('game_id'),
         ]);
     }
 
-    private function createRedis($gameID, $rewardIdDel = null)
+    private function createRedis($gameID)
     {
-        $rewardID  = GameReward::query()->where('game_id', $gameID)->pluck('id');
+        //clear key
+        Redis::del(Redis::keys('key:*'));
+
+        $rewardID  = explode(',', (Redis::get('game_' . $gameID)));
         $arr = [];
         $percent   = 0;
         foreach ($rewardID as $id) {
-            if ($rewardIdDel == $id) {
-                continue;
-            }
             if (Redis::exists('reward_' . $id)) {
                 $rewards   = explode('/', Redis::get('reward_' . $id));
                 for ($i = $percent + 1; $i <= (($rewards[1] - 1) + $percent); $i++) {
