@@ -17,6 +17,7 @@ use App\Traits\CommonTrait;
 use App\Traits\ResponseTrait;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
 class GameController extends Controller
@@ -86,6 +87,9 @@ class GameController extends Controller
 
         GameReward::query()->insert($rewardInsert);
 
+        // set redis reward
+        $this->setRedisReward($game->id);
+
         return $this->response(ResponseCodes::S1000);
     }
 
@@ -130,15 +134,24 @@ class GameController extends Controller
 
         $rewards = $request->get('reward');
         if ($rewards) {
+            $gameRewards = GameReward::query()->where('game_id', $request->get('id'))->pluck('id');
+
+            foreach ($gameRewards as $reward) {
+                if (Redis::get('reward_' . $reward)) {
+                    Redis::del('reward_' . $reward);
+                }
+            }
+
             GameReward::query()->where('game_id', $request->get('id'))->delete();
 
             $rewardInsert = [];
-            foreach ($request->reward as $reward) {
+            $rewards      = $request->reward;
+            foreach ($rewards as $reward) {
                 if ($request->file('image')) {
                     $image           = $this->uploadImage($request->file('image'), 'image');
                     $reward['image'] = $image['path'];
                 }
-                $rewardInsert = [
+                $rewardInsert[] = [
                     'name'       => $reward['quantity'],
                     'image'      => $reward['image'],
                     'quantity'   => $reward['quantity'],
@@ -150,6 +163,9 @@ class GameController extends Controller
             }
 
             GameReward::query()->insert($rewardInsert);
+
+            // set redis reward
+            $this->setRedisReward($request->get('id'));
         }
 
         return $this->response(ResponseCodes::S1000);
@@ -174,8 +190,22 @@ class GameController extends Controller
 
         Game::query()->find($request->get('id'))->delete();
 
+        $rewardID = GameReward::query()->where('game_id', $request->get('id'))->pluck('id');
+        foreach ($rewardID as $id) {
+            Redis::del('reward_' . $id);
+        }
+
         GameReward::query()->where('game_id', $request->get('id'))->delete();
 
         return $this->response(ResponseCodes::S1000);
+    }
+
+    public function setRedisReward($gameID)
+    {
+        // set redis for game
+        $rewardIdArr = GameReward::query()->where('game_id', $gameID)->get();
+        foreach ($rewardIdArr as $reward) {
+            Redis::set('reward_' . $reward->id, $reward->quantity . '/' . $reward->percent);
+        }
     }
 }

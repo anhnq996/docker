@@ -89,7 +89,7 @@ class GameController extends Controller
 
     public function createWinner(CreateWinnerRequest $request): JsonResponse
     {
-        $data = $request->only(['game_id', 'game_reward_id', 'quantity', 'email', 'phone', 'name']);
+        $data = $request->only(['game_id', 'game_reward_id', 'email', 'phone', 'name']);
 
         Winner::query()->create($data);
 
@@ -98,20 +98,52 @@ class GameController extends Controller
 
     public function dial(DialRequest $request): JsonResponse
     {
-        // $games = GameReward::query()->select(['id', 'quantity', 'percent'])->where('game_id', $request->get('game_id'))->get();
+        $rewardID = $this->createRedis($request->get('game_id'));
 
-        // foreach ($games as $reward) {
-        //     Redis::set('reward_' . $reward->id, $reward->quantity . '/' . $reward->percent);
-        // }
+        if (Redis::exists("reward_$rewardID")) {
+            $rewards  = explode('/', Redis::get("reward_$rewardID"));
+            if ($rewards[0] == 0) {
+                $this->createRedis($request->get('game_id'), $rewardID);
+            }
+            $quantity = $rewards[0] - 1;
+            Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
+        }
 
-        // $rewardID = GameReward::query()->where('game_id', $request->get('game_id'))->pluck('id');
+        $reward = GameReward::query()->find($rewardID);
 
-        // $rewardArr = [];
-        // foreach ($rewardID as $id) {
-        //     if (Redis::get('reward_' . $id)) {
-        //         $reward = explode('/', Redis::get('reward_' . $id));
-        //     }
-        // }
-        // return $this->response(ResponseCodes::S1000);
+        return $this->response(ResponseCodes::S1000, [
+            'id'      => $reward->id,
+            'game_id' => $reward->game_id,
+            'name'    => $reward->name,
+        ]);
+    }
+
+    private function createRedis($gameID, $rewardIdDel = null)
+    {
+        $rewardID  = GameReward::query()->where('game_id', $gameID)->pluck('id');
+        $arr = [];
+        $percent   = 0;
+        foreach ($rewardID as $id) {
+            if ($rewardIdDel == $id) {
+                continue;
+            }
+            if (Redis::exists('reward_' . $id)) {
+                $rewards   = explode('/', Redis::get('reward_' . $id));
+                for ($i = $percent + 1; $i <= (($rewards[1] - 1) + $percent); $i++) {
+                    $arr[$i] = $id;
+                }
+                $percent = $percent + $rewards[1];
+            }
+        }
+
+        Redis::pipeline(function ($pipe) use ($arr) {
+            foreach ($arr as $key => $value) {
+                $pipe->set("key:$key", $value);
+            }
+        });
+
+        $rewardID = Redis::get("key:" . rand(1, $percent));
+
+        return $rewardID;
     }
 }

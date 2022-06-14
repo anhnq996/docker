@@ -18,7 +18,7 @@ trait ResponseTrait
     protected function response(ResponseCodes $code, mixed $data = null, array $errors = null, array $debug = null): JsonResponse
     {
         return response()->json(array_filter([
-            'success' => intval($code->value) == ResponseCodes::S1000->value,
+            'success' => $code->value == ResponseCodes::S1000->value,
             'code'    => $code->value,
             'message' => __('codes.' . $code->name),
             'data'    => $data,

@@ -13,7 +13,8 @@ class GetListGameRequest extends FormRequest
      */
     public function authorize()
     {
-        return $this->user()->can('games');
+        // return $this->user()->can('games');
+        return true;
     }
 
     /**
