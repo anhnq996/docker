@@ -11,7 +11,7 @@ enum GameStatus: int
     {
         return match ($this) {
             self::ACTIVE   => 'Active',
-            self::UNACTIVE => 'UnActive!',
+            self::UNACTIVE => 'UnActive',
         };
     }
 }

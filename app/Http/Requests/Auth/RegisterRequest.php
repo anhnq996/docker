@@ -30,9 +30,7 @@ class RegisterRequest extends FormRequest
             'phone'                 => 'required|phone_format',
             'password'              => 'required',
             'password_confirmation' => 'required|same:password',
-            'plan_id'               => 'required|numeric',
-            'start_date'            => 'required|date_format:Y-m-d',
-            'end_date'              => 'required|date_format:Y-m-d|after_or_equal:start_date'
+            'plan_id'               => 'required|numeric|exists:plans,id',
         ];
     }
 }

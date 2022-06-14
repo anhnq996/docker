@@ -136,7 +136,7 @@ return [
     'url' => 'The :attribute must be a valid URL.',
     'uuid' => 'The :attribute must be a valid UUID.',
     'file_extension' => 'The :attribute must be a file of type: :values.',
-    'percent'        => 'Winning percentage cannot be more than 100%',
+    'percent'        => 'Winning percentage must be 100%',
 
 
     /*

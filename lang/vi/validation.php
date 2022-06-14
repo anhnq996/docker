@@ -135,7 +135,7 @@ return [
     'uploaded' => 'The :attribute failed to upload.',
     'url' => 'The :attribute must be a valid URL.',
     'uuid' => 'The :attribute must be a valid UUID.',
-    'percent'        => 'Tỉ lệ phần trăm trúng thưởng không được lớn hơn 100%',
+    'percent'        => 'Tỉ lệ phần trăm trúng thưởng phải là 100%',
     'file_extension' => 'Mục :attribute phải là một tập tin có định dạng: :values.',
 
 

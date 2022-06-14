@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Game;
 
+use App\Enums\GameStatus;
 use App\Rules\FileExtension;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
@@ -15,6 +16,7 @@ class UpdateGameRequest extends FormRequest
      */
     public function authorize()
     {
+        // return $this->user()->can('games');
         return true;
     }
 
@@ -66,7 +68,7 @@ class UpdateGameRequest extends FormRequest
                 foreach ($rewards as $reward) {
                     $precent += $reward['percent'];
                 }
-                if ($precent > 100) {
+                if ($precent > 100 || $precent < 100) {
                     $validator->errors()->add('percent', __('validation.percent'));
                 }
             });

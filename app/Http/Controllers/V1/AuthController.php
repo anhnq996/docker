@@ -24,6 +24,7 @@ use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Models\FirebaseToken;
 use App\Models\Otp;
+use App\Models\Plan;
 use App\Models\Setting;
 use App\Models\Staff;
 use App\Models\Token;
@@ -96,7 +97,8 @@ class AuthController extends Controller
     {
         $data = $request->all();
         $data['password'] = bcrypt($request->get('password'));
-
+        $plan = Plan::query()->find($request->get('plan_id'));
+        // $data['start_date'] = $plan->
         User::query()->create($data);
 
         return $this->response(ResponseCodes::S1000);

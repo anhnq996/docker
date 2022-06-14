@@ -26,7 +26,6 @@ class CreateWinnerRequest extends FormRequest
         return [
             'game_id'        => 'required|exists:games,id',
             'game_reward_id' => 'required|exists:game_rewards,id',
-            'quantity'       => 'required',
             'email'          => 'required|email_custom',
             'phone'          => 'required|phone_format',
             'name'           => 'required',

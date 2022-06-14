@@ -17,6 +17,7 @@ class CreateGameRequest extends FormRequest
      */
     public function authorize()
     {
+        // return $this->user()->can('games');
         return true;
     }
 
@@ -68,7 +69,7 @@ class CreateGameRequest extends FormRequest
                 foreach ($rewards as $reward) {
                     $precent += $reward['percent'];
                 }
-                if ($precent > 100) {
+                if ($precent > 100 || $precent < 100) {
                     $validator->errors()->add('percent', __('validation.percent'));
                 }
             });
