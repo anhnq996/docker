@@ -14,4 +14,4 @@ yarn-error.log
 /.vscode
 .ash_history
 /.npm
-/.composer
+/.composer/

@@ -178,12 +178,6 @@ class AuthController extends Controller
             /** @noinspection PhpPossiblePolymorphicInvocationInspection */
             auth()->user()->currentAccessToken()->delete();
 
-            // remove firebase token when logout
-            // if (!empty($request->headers?->get('authorization'))) {
-            //     $token = array_reverse(explode(' ', $request->headers->get('authorization')))[0] ?? null;
-            //     FirebaseToken::query()->where('user_token', $token)->delete();
-            // }
-
             return $this->response(ResponseCodes::S1000);
         } catch (Exception $exception) {
             Log::error($exception);
