@@ -13,6 +13,7 @@ use App\Traits\ResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use App\Jobs\CreateWinnnerJob;
 
 class GameController extends Controller
 {
@@ -87,27 +88,21 @@ class GameController extends Controller
         //
     }
 
-    public function createWinner(CreateWinnerRequest $request): JsonResponse
-    {
-        $data = $request->only(['game_id', 'game_reward_id', 'email', 'phone', 'name']);
-
-        Winner::query()->create($data);
-
-        return $this->response(ResponseCodes::S1000);
-    }
 
     public function dial(DialRequest $request): JsonResponse
     {
         $rewardID = $this->createRedis($request->get('game_id'));
-
         if (Redis::exists("reward_$rewardID")) {
             $rewards  = explode('/', Redis::get("reward_$rewardID"));
             if ($rewards[0] == 0) {
                 Redis::del("reward_$rewardID");
-                $this->createRedis($request->get('game_id'));
+                $this->dial($request->get('game_id'));
             }
-            $quantity = $rewards[0] - 1;
-            Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
+            if ($rewards[0] > 0) {
+                $quantity = $rewards[0] - 1;
+                Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
+                CreateWinnnerJob::dispatch($rewardID, $request->get('game_id'), $request->get('email'), $request->get('phone'), $request->get('name'));
+            }
         }
 
         return $this->response(ResponseCodes::S1000, [
@@ -122,7 +117,7 @@ class GameController extends Controller
         Redis::del(Redis::keys('key:*'));
 
         $rewardID  = explode(',', (Redis::get('game_' . $gameID)));
-        $arr = [];
+        $arr       = [];
         $percent   = 0;
         foreach ($rewardID as $id) {
             if (Redis::exists('reward_' . $id)) {

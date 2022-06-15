@@ -24,7 +24,10 @@ class DialRequest extends FormRequest
     public function rules()
     {
         return [
-            'game_id' => 'required|exists:games,id'
+            'game_id' => 'required|exists:games,id',
+            'email'   => 'required|email_custom',
+            'phone'   => 'required|phone_format',
+            'name'    => 'required'
         ];
     }
 }

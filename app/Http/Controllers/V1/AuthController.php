@@ -104,44 +104,44 @@ class AuthController extends Controller
         return $this->response(ResponseCodes::S1000);
     }
 
-    // /**
-    //  * @param ForgotPasswordRequest $request
-    //  * @return JsonResponse
-    //  * @throws Exception
-    //  */
-    // public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
-    // {
-    //     // Check input
-    //     if (!isset($request->username) || !isset($request->user_type)) {
-    //         return $this->response(Codes::E2015());
-    //     }
+    /**
+     * @param ForgotPasswordRequest $request
+     * @return JsonResponse
+     * @throws Exception
+     */
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        // // Check input
+        // if (!isset($request->username) || !isset($request->user_type)) {
+        //     return $this->response(ResponseCodes::E2015);
+        // }
 
-    //     $userType = UserType::tryFrom($request->user_type);
-    //     $params = $request->only('username', 'user_type');
-    //     $arrayUserStatus = [UserStatus::active()->value, UserStatus::otpVerified()->value];
-    //     $conditions = UserType::user()->equals($userType)
-    //         ? ['username' => $params['username'], 'type' => UserType::from($userType)]
-    //         : ['email' => $params['username']];
+        // $userType = UserType::tryFrom($request->user_type);
+        // $params = $request->only('username', 'user_type');
+        // $arrayUserStatus = [UserStatus::active()->value, UserStatus::otpVerified()->value];
+        // $conditions = UserType::user()->equals($userType)
+        //     ? ['username' => $params['username'], 'type' => UserType::from($userType)]
+        //     : ['email' => $params['username']];
 
-    //     $dataUser = match ($userType?->value) {
-    //         UserType::user()->value => $this->user->findUser($conditions, $arrayUserStatus),
-    //         UserType::clinic()->value => $this->clinic->findClinic($conditions, $arrayUserStatus),
-    //         UserType::staff()->value => $this->staff->findStaff($conditions, $arrayUserStatus),
-    //         UserType::doctor()->value => $this->doctor->findDoctor($conditions, $arrayUserStatus),
-    //     };
+        // $dataUser = match ($userType?->value) {
+        //     UserType::user()->value => $this->user->findUser($conditions, $arrayUserStatus),
+        //     UserType::clinic()->value => $this->clinic->findClinic($conditions, $arrayUserStatus),
+        //     UserType::staff()->value => $this->staff->findStaff($conditions, $arrayUserStatus),
+        //     UserType::doctor()->value => $this->doctor->findDoctor($conditions, $arrayUserStatus),
+        // };
 
-    //     if (!$dataUser) {
-    //         return $this->response(
-    //             UserType::user()->equals($userType) ? Codes::E2001() : Codes::E2002()
-    //         );
-    //     }
+        // if (!$dataUser) {
+        //     return $this->response(
+        //         UserType::user()->equals($userType) ? Codes::E2001() : Codes::E2002()
+        //     );
+        // }
 
-    //     [$codes, $data] = UserType::user()->equals($userType)
-    //         ? $this->handleForgotPasswordUser($params, $dataUser)
-    //         : $this->handleForgotPasswordAdmin($params, $dataUser);
+        // [$codes, $data] = UserType::user()->equals($userType)
+        //     ? $this->handleForgotPasswordUser($params, $dataUser)
+        //     : $this->handleForgotPasswordAdmin($params, $dataUser);
 
-    //     return $this->response($codes, $data);
-    // }
+        // return $this->response($codes, $data);
+    }
 
     // /**
     //  * @param $params
@@ -168,28 +168,22 @@ class AuthController extends Controller
     //     ]];
     // }
 
-    // /**
-    //  * @param Request $request
-    //  * @return JsonResponse
-    //  */
-    // public function logout(Request $request): JsonResponse
-    // {
-    //     try {
-    //         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-    //         auth()->user()->currentAccessToken()->delete();
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        try {
+            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
+            auth()->user()->currentAccessToken()->delete();
 
-    //         // remove firebase token when logout
-    //         if (!empty($request->headers?->get('authorization'))) {
-    //             $token = array_reverse(explode(' ', $request->headers->get('authorization')))[0] ?? null;
-    //             FirebaseToken::query()->where('user_token', $token)->delete();
-    //         }
-
-    //         return $this->response(Codes::S1000());
-    //     } catch (Exception $exception) {
-    //         Log::error($exception);
-    //         return $this->response(Codes::E1001());
-    //     }
-    // }
+            return $this->response(ResponseCodes::S1000);
+        } catch (Exception $exception) {
+            Log::error($exception);
+            return $this->response(ResponseCodes::E1001);
+        }
+    }
 
     // /**
     //  * @return JsonResponse
