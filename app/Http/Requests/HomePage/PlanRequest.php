@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Plan;
+namespace App\Http\Requests\HomePage;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreatePlanRequest extends FormRequest
+class PlanRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,7 @@ class CreatePlanRequest extends FormRequest
      */
     public function authorize()
     {
-        return $this->user()->can('games');
+        return true;
     }
 
     /**
@@ -24,10 +24,7 @@ class CreatePlanRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'          => 'required',
-            'price'         => 'required',
-            'properties'    => 'nullable',
-            'duration_time' => 'nullable',
+            'keyword' => 'nullable',
         ];
     }
 }

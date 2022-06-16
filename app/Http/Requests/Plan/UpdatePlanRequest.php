@@ -24,7 +24,11 @@ class UpdatePlanRequest extends FormRequest
     public function rules()
     {
         return [
-            'id' => 'required|exists:plans,id',
+            'id'            => 'required|exists:plans,id',
+            'name'          => 'nullable',
+            'price'         => 'nullable',
+            'properties'    => 'nullable',
+            'duration_time' => 'nullable',
         ];
     }
 }

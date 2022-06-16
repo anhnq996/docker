@@ -54,4 +54,12 @@ Route::group(['prefix' => 'v1', 'as' => 'v1.'], function () {
     ], function () {
         require_once __DIR__ . '/v1/guest.php';
     });
+
+    Route::group([
+        'prefix' => 'homepage',
+        'as' => 'homepage.',
+        'namespace' => 'App\Http\Controllers\V1\HomePage',
+    ], function () {
+        require_once __DIR__ . '/v1/homepage.php';
+    });
 });
