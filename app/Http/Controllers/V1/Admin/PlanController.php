@@ -41,7 +41,7 @@ class PlanController extends Controller
      */
     public function store(CreatePlanRequest $request)
     {
-        $data = $request->only(['name', 'price', 'properties']);
+        $data = $request->only(['name', 'price', 'properties', 'duration_time']);
         $plan = new Plan();
         $plan->fill($data);
         $plan->save();
@@ -58,7 +58,7 @@ class PlanController extends Controller
     public function show(GetListPlanRequest $request)
     {
         $plan = Plan::query()
-            ->select(['id', 'name', 'price', 'properties'])
+            ->select(['id', 'name', 'price', 'properties', 'duration_time'])
             ->where('id', $request->get('id'))
             ->first();
 
@@ -74,7 +74,7 @@ class PlanController extends Controller
      */
     public function update(UpdatePlanRequest $request)
     {
-        $data = $request->only(['name', 'price', 'properties']);
+        $data = $request->only(['name', 'price', 'properties', 'duration_time']);
 
         Plan::query()->find($request->get('id'))
             ->update($data);

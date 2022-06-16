@@ -24,6 +24,7 @@ class Plan extends Model
         'name',
         'price',
         'properties',
+        'duration_time',
         'created_at',
         'updated_at'
     ];
@@ -32,15 +33,15 @@ class Plan extends Model
         'properties' => 'array'
     ];
 
-    public function list($request)
+    public function list($request, $paginate = true)
     {
         $keyword   = $request->get('keyword');
         $limit     = $request->get('limit') ?? 20;
         $toPrice   = $request->get('to_price') ?? null;
         $fromPrice = $request->get('from_price') ?? null;
 
-        return $this->select([
-            'id', 'name', 'price', 'properties',
+        $query = $this->select([
+            'id', 'name', 'price', 'properties', 'duration_time'
         ])
             ->when($keyword, function ($query) use ($keyword) {
                 $keyword = '%' . $keyword . '%';
@@ -53,7 +54,12 @@ class Plan extends Model
             })
             ->when($fromPrice, function ($query) use ($fromPrice) {
                 $query->where('price', '<=', $fromPrice);
-            })
-            ->paginate($limit);
+            });
+
+        if ($paginate) {
+            return $query->paginate($limit);
+        } else {
+            return $query->get();
+        }
     }
 }

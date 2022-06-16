@@ -16,10 +16,11 @@ class DetailPlanResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'name'       => $this->name,
-            'price'      => $this->price,
-            'properties' => $this->properties,
-            'created_at' => Carbon::parse($this->created_at)->format('Y-m-d H:i:s'),
+            'name'          => $this->name,
+            'price'         => $this->price,
+            'properties'    => $this->properties,
+            'duration_time' => $this->duration_time,
+            'created_at'    => Carbon::parse($this->created_at)->format('Y-m-d H:i:s'),
         ];
     }
 }
