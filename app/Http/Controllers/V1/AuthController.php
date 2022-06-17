@@ -96,9 +96,13 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $data = $request->all();
-        $data['password'] = bcrypt($request->get('password'));
         $plan = Plan::query()->find($request->get('plan_id'));
-        // $data['start_date'] = $plan->
+
+        $startTime          = new Carbon($plan->created_at);
+        $data['password']   = bcrypt($request->get('password'));
+        $data['start_date'] = new Carbon($plan->created_at);
+        $data['end_date']   = $startTime->addMonth($plan->duration_time);
+
         User::query()->create($data);
 
         return $this->response(ResponseCodes::S1000);

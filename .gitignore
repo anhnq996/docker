@@ -16,3 +16,5 @@ yarn-error.log
 /.npm
 .composer/
 .composer/cache
+.docker
+.env.docker
