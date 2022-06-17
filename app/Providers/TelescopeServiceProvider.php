@@ -65,7 +65,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             return;
         }
 
-        Telescope::hideRequestParameters(['_token', 'new_password']);
+        Telescope::hideRequestParameters(['_token']);
 
         Telescope::hideRequestHeaders([
             'cookie',
