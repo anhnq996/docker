@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\V1\Admin\FileController;
 use App\Http\Controllers\V1\Admin\GameController;
 use App\Http\Controllers\V1\Admin\PlanController;
 use Illuminate\Http\Request;
@@ -35,4 +36,9 @@ Route::group(['prefix' => 'plans', 'as' => 'plans', 'middleware' => 'auth:sanctu
     Route::post('show', [PlanController::class, 'show'])->name('show');
     Route::post('delete', [PlanController::class, 'destroy'])->name('destroy');
     Route::post('select', [PlanController::class, 'select'])->name('select');
+});
+
+Route::group(['prefix' => 'files', 'as' => 'files', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('list', [FileController::class, 'list'])->name('list');
+    Route::post('upload-file', [FileController::class, 'uploadFile'])->name('list');
 });

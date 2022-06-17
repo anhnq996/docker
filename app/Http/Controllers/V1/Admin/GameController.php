@@ -9,6 +9,7 @@ use App\Http\Requests\Game\DeleteGameRequest;
 use App\Http\Requests\Game\DetailGameRequest;
 use App\Http\Requests\Game\GetListGameRequest;
 use App\Http\Requests\Game\UpdateGameRequest;
+use App\Http\Requests\Game\UploadFileRequest;
 use App\Http\Resources\Game\GameCollection;
 use App\Http\Resources\Game\GameDetailResource;
 use App\Models\Game;
@@ -51,17 +52,7 @@ class GameController extends Controller
      */
     public function create(CreateGameRequest $request)
     {
-        $data = $request->only(['name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url', 'reward_use_image']);
-
-        if ($request->file('banner')) {
-            $image          = $this->uploadImage($request->file('banner'), 'banner');
-            $data['banner'] = $image['path'];
-        }
-
-        if ($request->file('background')) {
-            $image              = $this->uploadImage($request->file('background'), 'background');
-            $data['background'] = $image['path'];
-        }
+        $data = $request->only(['name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url', 'reward_use_image', 'banner', 'background']);
 
         $data['code'] = strtoupper(Str::random(10));
         $data['user_id'] = auth()->user()?->id;
@@ -115,19 +106,8 @@ class GameController extends Controller
      */
     public function update(UpdateGameRequest $request): JsonResponse
     {
-        $data = $request->only(['name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url', 'reward_use_image']);
-
-        if ($request->file('banner')) {
-            $image          = $this->uploadImage($request->file('banner'), 'banner');
-            $data['banner'] = $image['path'];
-        }
-
-        if ($request->file('background')) {
-            $image              = $this->uploadImage($request->file('background'), 'background');
-            $data['background'] = $image['path'];
-        }
-
-        $data['code'] = strtoupper(Str::random(10));
+        $data            = $request->only(['name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url', 'reward_use_image', 'banner', 'background']);
+        $data['code']    = strtoupper(Str::random(10));
         $data['user_id'] = auth()->user()?->id;
 
         Game::query()->find($request->get('id'))->update($data);

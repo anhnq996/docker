@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Attributes\ImageAttribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class GameReward extends Model
 {
-    use HasFactory;
+    use HasFactory, ImageAttribute;
 
     protected $fillable = [
         'name',
