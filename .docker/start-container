@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Make storage if not exists
+for dirPath in "app/public" "framework/cache/data" "framework/sessions" "framework/testing" "framework/views" "logs"
+do
+    [[ -d ./storage/${dirPath} ]] || mkdir -p ./storage/${dirPath}
+done
+
+# Install vendor if not exists
+[[ -d ./vendor ]] || /usr/bin/composer install --no-dev
+
+# Start services
+/usr/bin/supervisord -c /etc/supervisord.conf
