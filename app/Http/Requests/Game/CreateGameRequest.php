@@ -31,18 +31,8 @@ class CreateGameRequest extends FormRequest
         return [
             'name'              => 'required',
             'description'       => 'required',
-            'banner'            => [new FileExtension([
-                'jpg', 'jpeg', 'png', 'bmp', 'gif', 'svg', 'webp']),
-                'mimetypes:image/jpg,image/jpeg,image/png,image/bmp,image/gif,image/svg,image/webp',
-                'nullable',
-                'max:5120',
-            ],
-            'background'        => [new FileExtension([
-                'jpg', 'jpeg', 'png', 'bmp', 'gif', 'svg', 'webp']),
-                'mimetypes:image/jpg,image/jpeg,image/png,image/bmp,image/gif,image/svg,image/webp',
-                'nullable',
-                'max:5120',
-            ],
+            'banner'            => 'nullable',
+            'background'        => 'nullable',
             'email_template'    => 'nullable',
             'rule'              => 'nullable',
             'reward_use_image'  => 'nullable',
