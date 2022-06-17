@@ -2,35 +2,15 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Enums\Codes;
-use App\Enums\OtpStatus;
-use App\Enums\OtpType;
 use App\Enums\ResponseCodes;
-use App\Enums\TokenType;
-use App\Enums\UserStatus;
-use App\Enums\UserType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\API\ForgotPasswordRequest;
 use App\Http\Requests\API\LoginRequest;
-use App\Http\Requests\API\Mobile\GoogleAccount\GoogleAccountCheckRequest;
-use App\Http\Requests\API\Mobile\GoogleAccount\GoogleAccountUpdatePhoneRequest;
-use App\Http\Requests\API\ResetPasswordRequest;
-use App\Http\Requests\API\VerifyTokenRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest as AuthLoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Http\Resources\UserResource;
-use App\Mail\ResetPasswordMailable;
-use App\Models\Clinic;
-use App\Models\Doctor;
-use App\Models\FirebaseToken;
-use App\Models\Otp;
+use App\Mail\ForgotPasswordMail;
 use App\Models\Plan;
-use App\Models\Setting;
-use App\Models\Staff;
-use App\Models\Token;
 use App\Models\User;
-use App\Services\OtpService;
-use App\Services\PermissionService;
 use App\Traits\CommonTrait;
 use App\Traits\ResponseTrait;
 use Error;
@@ -115,36 +95,16 @@ class AuthController extends Controller
      */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        // // Check input
-        // if (!isset($request->username) || !isset($request->user_type)) {
-        //     return $this->response(ResponseCodes::E2015);
-        // }
+        $password = Str::random(10);
 
-        // $userType = UserType::tryFrom($request->user_type);
-        // $params = $request->only('username', 'user_type');
-        // $arrayUserStatus = [UserStatus::active()->value, UserStatus::otpVerified()->value];
-        // $conditions = UserType::user()->equals($userType)
-        //     ? ['username' => $params['username'], 'type' => UserType::from($userType)]
-        //     : ['email' => $params['username']];
+        User::query()->where('email', $request->get('email'))
+            ->update([
+                'password' => bcrypt($password),
+            ]);
 
-        // $dataUser = match ($userType?->value) {
-        //     UserType::user()->value => $this->user->findUser($conditions, $arrayUserStatus),
-        //     UserType::clinic()->value => $this->clinic->findClinic($conditions, $arrayUserStatus),
-        //     UserType::staff()->value => $this->staff->findStaff($conditions, $arrayUserStatus),
-        //     UserType::doctor()->value => $this->doctor->findDoctor($conditions, $arrayUserStatus),
-        // };
+        Mail::to($request->get('email'))->send(new ForgotPasswordMail($password));
 
-        // if (!$dataUser) {
-        //     return $this->response(
-        //         UserType::user()->equals($userType) ? Codes::E2001() : Codes::E2002()
-        //     );
-        // }
-
-        // [$codes, $data] = UserType::user()->equals($userType)
-        //     ? $this->handleForgotPasswordUser($params, $dataUser)
-        //     : $this->handleForgotPasswordAdmin($params, $dataUser);
-
-        // return $this->response($codes, $data);
+        return $this->response(ResponseCodes::S1000);
     }
 
     // /**
