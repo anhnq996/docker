@@ -41,11 +41,18 @@ class PlanController extends Controller
      */
     public function store(CreatePlanRequest $request)
     {
-        $data = $request->only(['name', 'price', 'properties', 'duration_time']);
+        $data = $request->only(['name', 'price', 'properties', 'duration_time', 'is_best_seller']);
+
+        if ($request->get('is_best_seller')) {
+            Plan::query()->update([
+                'is_best_seller' => false,
+            ]);
+        }
         $plan = new Plan();
         $plan->fill($data);
         $plan->save();
 
+        //response
         return $this->response(ResponseCodes::S1000);
     }
 
@@ -58,7 +65,7 @@ class PlanController extends Controller
     public function show(GetListPlanRequest $request)
     {
         $plan = Plan::query()
-            ->select(['id', 'name', 'price', 'properties', 'duration_time'])
+            ->select(['id', 'name', 'price', 'properties', 'duration_time', 'is_best_seller'])
             ->where('id', $request->get('id'))
             ->first();
 
@@ -74,7 +81,13 @@ class PlanController extends Controller
      */
     public function update(UpdatePlanRequest $request)
     {
-        $data = $request->only(['name', 'price', 'properties', 'duration_time']);
+        $data = $request->only(['name', 'price', 'properties', 'duration_time', 'is_best_seller']);
+
+        if ($request->get('is_best_seller')) {
+            Plan::query()->update([
+                'is_best_seller' => false,
+            ]);
+        }
 
         Plan::query()->find($request->get('id'))
             ->update($data);

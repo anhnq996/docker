@@ -26,11 +26,13 @@ class Plan extends Model
         'properties',
         'duration_time',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'is_best_seller',
     ];
 
     protected $casts = [
-        'properties' => 'array'
+        'properties'     => 'array',
+        'is_best_seller' => 'boolean',
     ];
 
     public function list($request, $paginate = true)
@@ -41,7 +43,7 @@ class Plan extends Model
         $fromPrice = $request->get('from_price') ?? null;
 
         $query = $this->select([
-            'id', 'name', 'price', 'properties', 'duration_time'
+            'id', 'name', 'price', 'properties', 'duration_time', 'is_best_seller',
         ])
             ->when($keyword, function ($query) use ($keyword) {
                 $keyword = '%' . $keyword . '%';
@@ -54,7 +56,9 @@ class Plan extends Model
             })
             ->when($fromPrice, function ($query) use ($fromPrice) {
                 $query->where('price', '<=', $fromPrice);
-            });
+            })
+            ->orderBy('is_best_seller', 'desc')
+            ->orderBy('id', 'desc');
 
         if ($paginate) {
             return $query->paginate($limit);

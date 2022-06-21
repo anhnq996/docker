@@ -123,6 +123,7 @@ return [
     'uuid'                    => 'Mục :attribute phải là một chuỗi UUID hợp lệ.',
     'percent'                 => 'Tỉ lệ phần trăm trúng thưởng phải là 100%',
     'file_extension'          => 'Mục :attribute phải là một tập tin có định dạng: :values.',
+    'phone_format'            => 'Số điện thoại không hợp lệ',
 
 
     /*
