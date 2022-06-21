@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\V1\Homepage\PlanController;
-use App\Http\Controllers\V1\HomePage\ContactController;
+use App\Http\Controllers\V1\Homepage\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
