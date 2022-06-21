@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\V1\HomePage;
+namespace App\Http\Controllers\V1\Homepage;
 
 use App\Enums\ResponseCodes;
 use App\Http\Controllers\Controller;
