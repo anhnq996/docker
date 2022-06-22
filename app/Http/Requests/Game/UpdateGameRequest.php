@@ -44,9 +44,9 @@ class UpdateGameRequest extends FormRequest
             'font_size'          => 'nullable|numeric',
             'color'              => 'nullable',
             'free_turns'         => 'nullable|numeric',
-            'code_prefix'        => 'nullable',
             'title_game'         => 'nullable',
-            'banner_image_share' => [new FileExtension([
+            'code_prefix'        => 'nullable',
+            'image_share'        => [new FileExtension([
                 'jpg', 'jpeg', 'png', 'bmp', 'gif', 'svg', 'webp']),
                 'mimetypes:image/jpg,image/jpeg,image/png,image/bmp,image/gif,image/svg,image/webp',
                 'nullable',
