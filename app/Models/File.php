@@ -17,12 +17,14 @@ class File extends Model
         'path',
         'type',
         'game_id',
+        'user_id',
     ];
 
     protected $casts = [
         'type'    => FileType::class,
         'game_id' => 'integer',
         'path'    => 'string',
+        'user_id' => 'string',
     ];
 
     public function list($id)
@@ -31,6 +33,8 @@ class File extends Model
             'id', 'path', 'type', 'game_id'
         ])->when(!empty($id), function ($query) use ($id) {
             $query->where('game_id', $id);
+        })->when(empty($id), function ($query) {
+            $query->where('user_id', auth()->user()?->id);
         })->get();
     }
 }

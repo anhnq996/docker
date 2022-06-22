@@ -64,7 +64,7 @@ class GameController extends Controller
         $data['user_id'] = auth()->user()?->id;
 
         if ($request->file('image_share')) {
-            $image                      = $this->uploadImage($request->file('image'), 'banner_share');
+            $image                      = $this->uploadImage($request->file('image_share'), 'banner_share');
             $data['banner_image_share'] = $image['path'];
         }
 
@@ -147,7 +147,7 @@ class GameController extends Controller
         $data['user_id'] = auth()->user()?->id;
 
         if ($request->file('image_share')) {
-            $image                      = $this->uploadImage($request->file('image'), 'banner_share');
+            $image                      = $this->uploadImage($request->file('image_share'), 'banner_share');
             $data['banner_image_share'] = $image['path'];
         }
 
