@@ -24,7 +24,7 @@ class GetListFileRequest extends FormRequest
     public function rules()
     {
         return [
-            'game_id' => 'required|exists:games,id',
+            'game_id' => 'nullable|exists:games,id',
         ];
     }
 }

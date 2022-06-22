@@ -33,7 +33,7 @@ class UploadFileRequest extends FormRequest
                 'required',
                 'max:5120',
             ],
-            'game_id' => 'required|exists:games,id',
+            'game_id' => 'nullable|exists:games,id',
             'type'    => ['required', new Enum(FileType::class)],
         ];
     }
