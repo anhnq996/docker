@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\GameStatus;
 use App\Models\Attributes\BackGroundAttribute;
 use App\Models\Attributes\BannerAttribute;
+use App\Models\Attributes\FrameAttribute;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +32,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Game extends Model
 {
-    use HasFactory, BannerAttribute, BackGroundAttribute;
+    use HasFactory, BannerAttribute, BackGroundAttribute, FrameAttribute;
 
     protected $fillable = [
         'code',
@@ -38,6 +40,7 @@ class Game extends Model
         'description',
         'banner',
         'background',
+        'frame',
         'email_template',
         'rule',
         'user_id',
@@ -46,12 +49,52 @@ class Game extends Model
         'start_at',
         'end_at',
         'redirect_url',
+        'font_size',
+        'color',
+        'free_turns',
+        'code_prefix',
+        'title_game',
+        'reward_form',
+        'show_suffix',
+        'banner_image_share',
+        'content_share',
+        'hashtag',
+        'create_winner',
+        'is_publish',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     protected $casts = [
-        'reward_use_image' => 'boolean'
+        'reward_use_image'   => 'boolean',
+        'code'               => 'string',
+        'name'               => 'string',
+        'description'        => 'string',
+        'banner'             => 'string',
+        'background'         => 'string',
+        'frame'              => 'string',
+        'email_template'     => 'string',
+        'rule'               => 'string',
+        'user_id'            => 'integer',
+        'status'             => GameStatus::class,
+        'reward_use_image'   => 'string',
+        'start_at'           => 'datetime:Y-m-d H:i:s',
+        'end_at'             => 'datetime:Y-m-d H:i:s',
+        'redirect_url'       => 'string',
+        'font_size'          => 'string',
+        'color'              => 'string',
+        'free_turns'         => 'integer',
+        'code_prefix'        => 'string',
+        'title_game'         => 'string',
+        'reward_form'        => 'boolean',
+        'show_suffix'        => 'boolean',
+        'banner_image_share' => 'string',
+        'content_share'      => 'string',
+        'hashtag'            => 'array',
+        'create_winner'      => 'boolean',
+        'is_publish'         => 'boolean',
+        'created_at'         => 'datetime:Y-m-d H:i:s',
+        'updated_at'         => 'datetime:Y-m-d H:i:s',
     ];
 
     public function user(): BelongsTo
@@ -80,6 +123,7 @@ class Game extends Model
             'games.description',
             'games.banner',
             'games.background',
+            'games.frame',
             'games.email_template',
             'games.rule',
             'games.user_id',
@@ -88,8 +132,20 @@ class Game extends Model
             'games.start_at',
             'games.end_at',
             'games.redirect_url',
+            'games.font_size',
+            'games.color',
+            'games.free_turns',
+            'games.code_prefix',
+            'games.title_game',
+            'games.reward_form',
+            'games.show_suffix',
+            'games.banner_image_share',
+            'games.content_share',
+            'games.hashtag',
+            'games.create_winner',
+            'games.is_publish',
             'games.created_at',
-            'games.updated_at'
+            'games.updated_at',
         ])
             ->with('rewards')
             ->where('id', $id)
@@ -109,6 +165,7 @@ class Game extends Model
             'games.description',
             'games.banner',
             'games.background',
+            'games.frame',
             'games.email_template',
             'games.rule',
             'games.user_id',
@@ -117,8 +174,20 @@ class Game extends Model
             'games.start_at',
             'games.end_at',
             'games.redirect_url',
+            'games.font_size',
+            'games.color',
+            'games.free_turns',
+            'games.code_prefix',
+            'games.title_game',
+            'games.reward_form',
+            'games.show_suffix',
+            'games.banner_image_share',
+            'games.content_share',
+            'games.hashtag',
+            'games.create_winner',
+            'games.is_publish',
             'games.created_at',
-            'games.updated_at'
+            'games.updated_at',
         ])
         ->with('rewards')
         ->when($keyword, function ($query) use ($keyword) {

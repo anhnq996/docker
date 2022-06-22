@@ -14,6 +14,7 @@ use App\Http\Resources\Game\GameCollection;
 use App\Http\Resources\Game\GameDetailResource;
 use App\Models\Game;
 use App\Models\GameReward;
+use App\Models\Winner;
 use App\Traits\CommonTrait;
 use App\Traits\ResponseTrait;
 use Carbon\Carbon;
@@ -52,10 +53,20 @@ class GameController extends Controller
      */
     public function create(CreateGameRequest $request)
     {
-        $data = $request->only(['name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url', 'reward_use_image', 'banner', 'background']);
+        $data = $request->only([
+            'name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url',
+            'reward_use_image', 'banner', 'background', 'font_size', 'color', 'free_turns', 'code_prefix', 'title_game', 'reward_form',
+            'show_suffix', 'banner_image_share', 'content_share', 'hashtag', 'create_winner', 'is_publish', 'frame'
+        ]);
 
-        $data['code'] = strtoupper(Str::random(10));
+        $data['code']    = strtoupper(Str::random(10));
         $data['user_id'] = auth()->user()?->id;
+
+        if ($request->get('image_share')) {
+            $image                      = $this->uploadImage($request->file('image'), 'banner_share');
+            $data['banner_image_share'] = $image['path'];
+        }
+
 
         $game = Game::query()->create($data);
 
@@ -72,11 +83,32 @@ class GameController extends Controller
                 'percent'    => $reward['percent'],
                 'game_id'    => $game->id,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ];
         }
 
         GameReward::query()->insert($rewardInsert);
+
+        if ($request->get('create_winner')) {
+            $faker = \Faker\Factory::create();
+            $rewardID = GameReward::query()->where('game_id', $game->id)?->pluck('id');
+
+            $data = [];
+            if ($rewardID) {
+                foreach ($rewardID as $reward) {
+                    $data[] = [
+                        'game_id'         => $game->id,
+                        'game_reward_id'  => $reward,
+                        'name'            => $faker->name(),
+                        'email'           => $faker->unique()->safeEmail(),
+                        'phone'           => $faker->phoneNumber,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ];
+                }
+            }
+            Winner::query()->insert($data);
+        }
 
         // set redis reward
         $this->setRedisReward($game->id);
@@ -106,7 +138,11 @@ class GameController extends Controller
      */
     public function update(UpdateGameRequest $request): JsonResponse
     {
-        $data            = $request->only(['name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url', 'reward_use_image', 'banner', 'background']);
+        $data            = $request->only([
+            'name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url',
+            'reward_use_image', 'banner', 'background', 'font_size', 'color', 'free_turns', 'code_prefix', 'title_game', 'reward_form',
+            'show_suffix', 'banner_image_share', 'content_share', 'hashtag', 'create_winner', 'is_publish', 'frame'
+        ]);
         $data['code']    = strtoupper(Str::random(10));
         $data['user_id'] = auth()->user()?->id;
 
@@ -120,7 +156,11 @@ class GameController extends Controller
                 if (Redis::get('reward_' . $reward)) {
                     Redis::del('reward_' . $reward);
                 }
+
             }
+
+            // Delete the winner of the old award
+            Winner::query()->where('game_id', $request->get('id'))->whereIn('id',  $gameRewards)->delete();
 
             GameReward::query()->where('game_id', $request->get('id'))->delete();
 
@@ -143,6 +183,28 @@ class GameController extends Controller
             }
 
             GameReward::query()->insert($rewardInsert);
+
+            // create sample data
+            if ($request->get('create_winner')) {
+                $faker = \Faker\Factory::create();
+                $rewardID = GameReward::query()->where('game_id', $request->get('id'))?->pluck('id');
+
+                $data = [];
+                if ($rewardID) {
+                    foreach ($rewardID as $reward) {
+                        $data[] = [
+                            'game_id'         => $request->get('id'),
+                            'game_reward_id'  => $reward,
+                            'name'            => $faker->name(),
+                            'email'           => $faker->unique()->safeEmail(),
+                            'phone'           => $faker->phoneNumber,
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ];
+                    }
+                }
+                Winner::query()->insert($data);
+            }
 
             // set redis reward
             $this->setRedisReward($request->get('id'));
