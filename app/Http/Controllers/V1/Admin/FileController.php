@@ -24,7 +24,7 @@ class FileController extends Controller
         $this->file = $file;
     }
 
-    public function uploadFile(UploadFileRequest $request)
+    public function uploadFile(UploadFileRequest $request): JsonResponse
     {
         $data         = $request->only('game_id', 'type');
         $image        = $this->uploadImage($request->file('file'), 'file');

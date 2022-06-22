@@ -18,6 +18,7 @@ use App\Models\Winner;
 use App\Traits\CommonTrait;
 use App\Traits\ResponseTrait;
 use Carbon\Carbon;
+use Faker\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
@@ -56,17 +57,16 @@ class GameController extends Controller
         $data = $request->only([
             'name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url',
             'reward_use_image', 'banner', 'background', 'font_size', 'color', 'free_turns', 'code_prefix', 'title_game', 'reward_form',
-            'show_suffix', 'banner_image_share', 'content_share', 'hashtag', 'create_winner', 'is_publish', 'frame'
+            'show_suffix', 'image_share', 'content_share', 'hashtag', 'create_winner', 'is_publish', 'frame'
         ]);
 
         $data['code']    = strtoupper(Str::random(10));
         $data['user_id'] = auth()->user()?->id;
 
-        if ($request->get('image_share')) {
+        if ($request->file('image_share')) {
             $image                      = $this->uploadImage($request->file('image'), 'banner_share');
             $data['banner_image_share'] = $image['path'];
         }
-
 
         $game = Game::query()->create($data);
 
@@ -90,7 +90,7 @@ class GameController extends Controller
         GameReward::query()->insert($rewardInsert);
 
         if ($request->get('create_winner')) {
-            $faker = \Faker\Factory::create();
+            $faker = Factory::create();
             $rewardID = GameReward::query()->where('game_id', $game->id)?->pluck('id');
 
             $data = [];
@@ -141,10 +141,15 @@ class GameController extends Controller
         $data            = $request->only([
             'name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url',
             'reward_use_image', 'banner', 'background', 'font_size', 'color', 'free_turns', 'code_prefix', 'title_game', 'reward_form',
-            'show_suffix', 'banner_image_share', 'content_share', 'hashtag', 'create_winner', 'is_publish', 'frame'
+            'show_suffix', 'image_share', 'content_share', 'hashtag', 'create_winner', 'is_publish', 'frame'
         ]);
         $data['code']    = strtoupper(Str::random(10));
         $data['user_id'] = auth()->user()?->id;
+
+        if ($request->file('image_share')) {
+            $image                      = $this->uploadImage($request->file('image'), 'banner_share');
+            $data['banner_image_share'] = $image['path'];
+        }
 
         Game::query()->find($request->get('id'))->update($data);
 
@@ -186,7 +191,7 @@ class GameController extends Controller
 
             // create sample data
             if ($request->get('create_winner')) {
-                $faker = \Faker\Factory::create();
+                $faker = Factory::create();
                 $rewardID = GameReward::query()->where('game_id', $request->get('id'))?->pluck('id');
 
                 $data = [];
