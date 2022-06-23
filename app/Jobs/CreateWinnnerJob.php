@@ -42,11 +42,11 @@ class CreateWinnnerJob implements ShouldQueue
     public function handle()
     {
         Winner::query()->create([
-            'reward_id' => $this->rewardID,
-            'game_id'   => $this->gameID,
-            'email'     => $this->email,
-            'phone'     => $this->phone,
-            'name'      => $this->name,
+            'game_reward_id' => $this->rewardID,
+            'game_id'        => $this->gameID,
+            'email'          => $this->email,
+            'phone'          => $this->phone,
+            'name'           => $this->name,
         ]);
     }
 }

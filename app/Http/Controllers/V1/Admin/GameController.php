@@ -81,7 +81,7 @@ class GameController extends Controller
                 'image'      => $reward['image'],
                 'quantity'   => $reward['quantity'],
                 'percent'    => $reward['percent'],
-                'add_turn'   => $reward['add_turn'],
+                'add_turn'   => $reward['add_turn'] ?? 0,
                 'game_id'    => $game->id,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -181,7 +181,7 @@ class GameController extends Controller
                     'image'      => $reward['image'],
                     'quantity'   => $reward['quantity'],
                     'percent'    => $reward['percent'],
-                    'add_turn'   => $reward['add_turn'],
+                    'add_turn'   => $reward['add_turn'] ?? 0,
                     'game_id'    => $request->get('id'),
                     'created_at' => now(),
                     'updated_at' => now()

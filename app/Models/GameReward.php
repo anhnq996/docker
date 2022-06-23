@@ -18,6 +18,7 @@ class GameReward extends Model
         'percent',
         'game_id',
         'type',
+        'add_turn',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class GameReward extends Model
         'percent'    => 'integer',
         'game_id'    => 'integer',
         'type'       => RewardType::class,
+        'add_turn'   => 'integer',
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s'
     ];
