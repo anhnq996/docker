@@ -34,6 +34,8 @@ class GameController extends Controller
             }
         }
 
+        $remainTurn = Redis::get($request->get('game_id') . '_' . $request->get('phone')) - 1;
+
         $rewardID = $this->createRedis($request->get('game_id'));
         if (Redis::exists("reward_$rewardID")) {
             $rewards  = explode('/', Redis::get("reward_$rewardID"));
@@ -41,20 +43,22 @@ class GameController extends Controller
                 Redis::del("reward_$rewardID");
                 $this->dial($request->get('game_id'));
             }
+
             if ($rewards[0] > 0) {
                 $quantity = $rewards[0] - 1;
                 Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
 
                 CreateWinnnerJob::dispatch($rewardID, $request->get('game_id'), $request->get('email'), $request->get('phone'), $request->get('name'));
 
-                if (Redis::exists($request->get('game_id') . '_' . $request->get('phone'))) {
-                    $turn = $quantity + Redis::get($request->get('game_id') . '_' . $request->get('phone'));
+                if (Redis::exists($request->get('game_id') . '_reward_' . $rewardID)) {
+                    $remainTurn = $remainTurn + Redis::get($request->get('game_id') . '_reward_' . $rewardID);
 
-                    UpdatePlayerJob::dispatch($turn, $request->get('phone'), $request->get('game_id'));
+                    UpdatePlayerJob::dispatch($remainTurn, $request->get('phone'), $request->get('game_id'));
                 }
-
             }
         }
+
+        Redis::set($request->get('game_id') . '_' . $request->get('phone'), $remainTurn);
 
         return $this->response(ResponseCodes::S1000, [
             'id'      => $rewardID,
