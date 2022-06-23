@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Game;
 
 use App\Enums\GameStatus;
+use App\Enums\RewardForm;
+use App\Enums\RewardType;
 use App\Rules\FileExtension;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
@@ -56,7 +58,7 @@ class UpdateGameRequest extends FormRequest
             'hashtag'            => 'nullable|array',
             'create_winner'      => 'boolean|nullable',
             'is_publish'         => 'boolean|nullable',
-            'reward_form'        => ['required', new Enum(RewardForm::class)],
+            'reward_form'        => ['nullable', new Enum(RewardForm::class)],
             'show_suffix'        => 'boolean',
             'reward'             => 'nullable|array',
             'reward.*.name'      => 'required',
