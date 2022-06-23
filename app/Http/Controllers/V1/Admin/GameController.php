@@ -52,7 +52,7 @@ class GameController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function create(CreateGameRequest $request)
+    public function create(CreateGameRequest $request): JsonResponse
     {
         $data = $request->only([
             'name', 'description', 'email_template', 'rule', 'redirect_url', 'status', 'start_at', 'end_at', 'redirect_url',
@@ -81,6 +81,7 @@ class GameController extends Controller
                 'image'      => $reward['image'],
                 'quantity'   => $reward['quantity'],
                 'percent'    => $reward['percent'],
+                'add_turn'   => $reward['add_turn'],
                 'game_id'    => $game->id,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -161,7 +162,6 @@ class GameController extends Controller
                 if (Redis::get('reward_' . $reward)) {
                     Redis::del('reward_' . $reward);
                 }
-
             }
 
             // Delete the winner of the old award
@@ -181,6 +181,7 @@ class GameController extends Controller
                     'image'      => $reward['image'],
                     'quantity'   => $reward['quantity'],
                     'percent'    => $reward['percent'],
+                    'add_turn'   => $reward['add_turn'],
                     'game_id'    => $request->get('id'),
                     'created_at' => now(),
                     'updated_at' => now()
@@ -255,6 +256,9 @@ class GameController extends Controller
         foreach ($rewardIdArr as $reward) {
             $rewardIds = $rewardIds ? $rewardIds . ',' . $reward->id : $reward->id;
             Redis::set('reward_' . $reward->id, $reward->quantity . '/' . $reward->percent);
+            if ($reward->add_turn) {
+                Redis::set($gameID . '_reward_' . $reward->id, $reward->add_turn);
+            }
         }
         Redis::set('game_' . $gameID, $rewardIds);
     }
