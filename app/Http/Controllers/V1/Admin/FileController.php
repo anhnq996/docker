@@ -28,6 +28,7 @@ class FileController extends Controller
     {
         $data            = $request->only('game_id', 'type');
         $image           = $this->uploadImage($request->file('file'), 'file');
+        dd($image);
         $data['path']    = $image['path'];
         $data['user_id'] = auth()->user()?->id;
 

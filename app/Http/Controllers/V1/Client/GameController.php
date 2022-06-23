@@ -30,13 +30,14 @@ class GameController extends Controller
         // check turn
         if (Redis::exists($request->get('game_id') . '_' . $request->get('phone'))) {
             if (!Redis::get($request->get('game_id') . '_' . $request->get('phone'))) {
-                return $this->reponse(ResponseCodes::E2016);
+                return $this->response(ResponseCodes::E2016);
             }
         }
 
         $remainTurn = Redis::get($request->get('game_id') . '_' . $request->get('phone')) - 1;
 
         $rewardID = $this->createRedis($request->get('game_id'));
+
         if (Redis::exists("reward_$rewardID")) {
             $rewards  = explode('/', Redis::get("reward_$rewardID"));
             if ($rewards[0] == 0) {
@@ -48,12 +49,16 @@ class GameController extends Controller
                 $quantity = $rewards[0] - 1;
                 Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
 
-                CreateWinnnerJob::dispatch($rewardID, $request->get('game_id'), $request->get('email'), $request->get('phone'), $request->get('name'));
-
                 if (Redis::exists($request->get('game_id') . '_reward_' . $rewardID)) {
                     $remainTurn = $remainTurn + Redis::get($request->get('game_id') . '_reward_' . $rewardID);
 
                     UpdatePlayerJob::dispatch($remainTurn, $request->get('phone'), $request->get('game_id'));
+                } else {
+                    if (Redis::exists('game_' . $request->get('game_id') . '_' . $request->get('phone'))) {
+                        $winner = explode('/', Redis::get('game_' . $request->get('game_id') . '_' . $request->get('phone')));
+
+                        CreateWinnnerJob::dispatch($rewardID, $request->get('game_id'), $winner[0], $winner[1], $winner[2]);
+                    }
                 }
             }
         }
@@ -74,20 +79,20 @@ class GameController extends Controller
      */
     public function createPlayer(CreatePlayerRequest $request): JsonResponse
     {
-        if (Redis::exists($request->get('game_id') . '_' . $request->get('phone'))) {
+        if (!Redis::exists($request->get('game_id') . '_' . $request->get('phone'))) {
             $data               = $request->only(['name', 'phone', 'email', 'game_id']);
             $data['user_agent'] = $request->header('user_agent');
             $data['ip']         = $request->ip();
             $data['turn']       = Game::query()->find($data['game_id'])?->free_turns;
 
             Redis::set($data['game_id'] . '_' . $data['phone'], $data['turn']);
-
+            Redis::set('game_' . $data['game_id'] . '_' . $data['phone'], $data['email']. '/' . $data['phone'] . '/' . $data['name']);
             // create player
             CreatePlayerJob::dispatch($data);
         }
 
         return $this->response(ResponseCodes::S1000, [
-            'turn' => Redis::get($request->get('game_id') . '_' . $request->get('phone'))
+            'turn'  => Redis::get($request->get('game_id') . '_' . $request->get('phone')),
         ]);
     }
 

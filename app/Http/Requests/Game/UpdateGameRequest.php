@@ -55,7 +55,7 @@ class UpdateGameRequest extends FormRequest
                 'max:5120',
             ],
             'content_share'      => 'nullable',
-            'hashtag'            => 'nullable|array',
+            'hashtag'            => 'nullable',
             'create_winner'      => 'boolean|nullable',
             'is_publish'         => 'boolean|nullable',
             'reward_form'        => ['nullable', new Enum(RewardForm::class)],
