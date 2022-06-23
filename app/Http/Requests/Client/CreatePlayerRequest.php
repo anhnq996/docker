@@ -4,7 +4,7 @@ namespace App\Http\Requests\Client;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class DialRequest extends FormRequest
+class CreatePlayerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,10 @@ class DialRequest extends FormRequest
     public function rules()
     {
         return [
-            'game_id' => 'required|exists:games,id',
+            'name'    => 'required',
             'phone'   => 'required|phone_format',
+            'email'   => 'required|email_custom',
+            'game_id' => 'required|exists:games,id',
         ];
     }
 }

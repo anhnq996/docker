@@ -17,4 +17,5 @@ enum ResponseCodes: string
     case E2007 = 'E2007';
     case E2008 = 'E2008';
     case E2015 = 'E2015';
+    case E2016 = 'E2016';
 }
