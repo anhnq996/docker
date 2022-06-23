@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Models\Attributes\BackGroundAttribute;
 use App\Models\Attributes\BannerAttribute;
 use App\Models\Attributes\FrameAttribute;
+use App\Models\Attributes\ImageBannerShareAttribute;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Game extends Model
 {
-    use HasFactory, BannerAttribute, BackGroundAttribute, FrameAttribute;
+    use HasFactory, BannerAttribute, BackGroundAttribute, FrameAttribute, ImageBannerShareAttribute;
 
     protected $fillable = [
         'code',
@@ -114,10 +115,10 @@ class Game extends Model
 
     public function detail($request)
     {
-        $id    = $request->get('id') ?? null;
-        $limit = $request->get('limit') ?? 20;
+        $id = $request->get('id') ?? null;
 
         return $this->select([
+            'games.id',
             'games.code',
             'games.name',
             'games.description',
@@ -149,7 +150,7 @@ class Game extends Model
         ])
             ->with('rewards')
             ->where('id', $id)
-            ->paginate($limit);
+            ->first();
     }
 
     public function listGame($request)

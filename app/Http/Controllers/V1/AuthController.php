@@ -8,6 +8,7 @@ use App\Http\Requests\API\LoginRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest as AuthLoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\Auth\UserResource;
 use App\Mail\ForgotPasswordMail;
 use App\Models\Plan;
 use App\Models\User;
@@ -307,5 +308,12 @@ class AuthController extends Controller
         }
 
         return $results;
+    }
+
+    public function getUser(): JsonResponse
+    {
+        $user = User::query()->find(auth()->user()->id);
+
+        return $this->response(ResponseCodes::S1000, UserResource::make($user));
     }
 }

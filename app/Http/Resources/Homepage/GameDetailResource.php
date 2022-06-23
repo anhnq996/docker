@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Game;
+namespace App\Http\Resources\Homepage;
 
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -40,7 +40,6 @@ class GameDetailResource extends JsonResource
             'banner_image_share' => $this->banner_image_share,
             'content_share'      => $this->content_share,
             'hashtag'            => $this->hashtag,
-            'create_winner'      => $this->create_winner,
             'is_publish'         => $this->is_publish,
             'rewards'            => $this->rewards,
             'created_at'         => Carbon::parse($this->created_at)->format('Y-m-d H:i:s'),
