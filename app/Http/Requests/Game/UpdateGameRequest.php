@@ -64,6 +64,7 @@ class UpdateGameRequest extends FormRequest
             'reward.*.quantity'  => 'required',
             'reward.*.percent'   => 'required',
             'reward.*.type'      => ['required', new Enum(RewardType::class)],
+            'reward.*.add_turn'  => 'nullable|numeric',
         ];
     }
 

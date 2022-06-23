@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Redis;
 use App\Jobs\CreateWinnnerJob;
 use App\Jobs\CreatePlayerJob;
+use App\Http\Requests\Client\UpdatePlayerRequest;
+use App\Jobs\UpdatePlayerJob;
 
 class GameController extends Controller
 {
@@ -42,7 +44,15 @@ class GameController extends Controller
             if ($rewards[0] > 0) {
                 $quantity = $rewards[0] - 1;
                 Redis::set("reward_$rewardID", $quantity . '/' . $rewards[1]);
+
                 CreateWinnnerJob::dispatch($rewardID, $request->get('game_id'), $request->get('email'), $request->get('phone'), $request->get('name'));
+
+                if (Redis::exists($request->get('game_id') . '_' . $request->get('phone'))) {
+                    $turn = $quantity + Redis::get($request->get('game_id') . '_' . $request->get('phone'));
+
+                    UpdatePlayerJob::dispatch($turn, $request->get('phone'), $request->get('game_id'));
+                }
+
             }
         }
 
