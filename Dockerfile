@@ -39,7 +39,7 @@ RUN crontab -l > /tmp/crontab.tmp ; \
     rm -rf /tmp/crontab.tmp
 # Copy source code
 COPY . .
-RUN composer install --no-dev ; \
+RUN composer install ; \
     rm -rf .docker .kubernetes ; \
     php artisan storage:link
 # Create user/group suser:sgroup
