@@ -31,7 +31,7 @@ class GameResource extends JsonResource
             'start_at'           => $this->start_at,
             'end_at'             => $this->end_at,
             'redirect_url'       => $this->redirect_url,
-            'reward'             => $this->reward,
+            'rewards'            => $this->rewards,
             'font_size'          => $this->font_size,
             'color'              => $this->color,
             'free_turns'         => $this->free_turns,
