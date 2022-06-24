@@ -124,6 +124,7 @@ return [
     'percent'                 => 'Tỉ lệ phần trăm trúng thưởng phải là 100%',
     'file_extension'          => 'Mục :attribute phải là một tập tin có định dạng: :values.',
     'phone_format'            => 'Số điện thoại không hợp lệ',
+    'same_password'           => 'Mật khẩu mới và Mật khẩu xác nhận chưa trùng khớp.',
 
 
     /*
@@ -154,6 +155,10 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'current_password'      => 'Mật khẩu cũ',
+        'password'              => 'Mật khẩu',
+        'password_confirmation' => 'Mật khẩu xác nhận',
+    ],
 
 ];
