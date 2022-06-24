@@ -13,11 +13,19 @@ use Illuminate\Support\Facades\Redis;
 use App\Jobs\CreateWinnnerJob;
 use App\Jobs\CreatePlayerJob;
 use App\Http\Requests\Client\UpdatePlayerRequest;
+use App\Http\Requests\Game\DetailGameRequest;
 use App\Jobs\UpdatePlayerJob;
 
 class GameController extends Controller
 {
     use ResponseTrait;
+
+    protected Game $game;
+
+    public function __construct(Game $game)
+    {
+        $this->game = $game;
+    }
 
     /**
      * Dial
@@ -129,5 +137,18 @@ class GameController extends Controller
         $rewardID = Redis::get("key:" . rand(1, $percent));
 
         return $rewardID;
+    }
+
+        /**
+     * Display the specified resource.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(DetailGameRequest $request)
+    {
+        $detail = $this->game->detail($request);
+
+        return $this->response(ResponseCodes::S1000, $detail);
     }
 }

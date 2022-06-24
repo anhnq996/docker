@@ -22,4 +22,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['prefix' => 'games', 'as' => 'games', 'middleware' => 'auth:sanctum,guest'], function () {
     Route::post('dial', [GameController::class, 'dial'])->name('dial');
     Route::post('create-player', [GameController::class, 'createPlayer'])->name('create_player');
+    Route::post('show', [GameController::class, 'show'])->name('show');
 });
+
