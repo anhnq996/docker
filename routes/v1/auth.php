@@ -20,4 +20,6 @@ Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgotPassword');
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/get', [AuthController::class, 'getUser'])->name('getUser');
+    Route::post('/change-password', [AuthController::class, 'changePassword'])->name('change_password');
+    Route::post('/update-user', [AuthController::class, 'updateUser'])->name('update_user');
 });

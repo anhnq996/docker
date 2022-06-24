@@ -14,5 +14,7 @@ return [
     'E2007' => 'Phiên đăng nhập không hợp lệ',
     'E2008' => 'Game này đang trong thời gian hoạt động',
     'E2015' => 'Vui lòng điền đầy đủ thông tin.',
-    'E2016' => 'Bạn đã hết lượt quay.'
+    'E2016' => 'Bạn đã hết lượt quay.',
+    'E2017' => 'Mật khẩu cũ không chính xác, vui lòng kiểm tra lại',
+
 ];

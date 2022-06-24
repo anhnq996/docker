@@ -15,4 +15,6 @@ return [
     'E2008' => 'This game is in operation',
     'E2015' => 'Please fill in all information.',
     'E2016' => 'You have run out of spins.',
+    'E2017' => 'Old password is incorrect, please check again',
+
 ];

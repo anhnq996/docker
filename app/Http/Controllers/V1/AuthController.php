@@ -5,9 +5,11 @@ namespace App\Http\Controllers\V1;
 use App\Enums\ResponseCodes;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\LoginRequest;
+use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest as AuthLoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Mail\ForgotPasswordMail;
 use App\Models\Plan;
@@ -108,31 +110,6 @@ class AuthController extends Controller
         return $this->response(ResponseCodes::S1000);
     }
 
-    // /**
-    //  * @param $params
-    //  * @param $thisUser
-    //  * @return array
-    //  * @throws Exception
-    //  */
-    // public function handleForgotPasswordUser($params, $thisUser): array
-    // {
-    //     $otpType = OtpType::change_pw();
-    //     if ($this->otpService->isBanned($params['username'], $otpType)) {
-    //         return [Codes::E1068(), null];
-    //     }
-
-    //     // Send new OTP
-    //     $this->otpService->send(
-    //         $params['username'], $otpType, $thisUser->id
-    //     );
-
-    //     return [Codes::S1000(), [
-    //         'user_id' => $thisUser->id,
-    //         'username' => $thisUser->username,
-    //         'user_type' => $thisUser->type,
-    //     ]];
-    // }
-
     /**
      * @param Request $request
      * @return JsonResponse
@@ -149,18 +126,6 @@ class AuthController extends Controller
             return $this->response(ResponseCodes::E1001);
         }
     }
-
-    // /**
-    //  * @return JsonResponse
-    //  */
-    // public function getPrefixMobile(): JsonResponse
-    // {
-    //     // Viettel, Vina, Mobi, VietnamMobile, GMobie
-    //     /** @var Setting $setting */
-    //     $setting = Setting::query()->where('key', 'allow_prefix_phone')->firstOrNew();
-    //     $prefixPhone = $setting?->value ? explode(',', $setting->value) : [];
-    //     return $this->response(Codes::S1000(), ['prefix' => $prefixPhone]);
-    // }
 
     /**
      * @param string $type
@@ -185,96 +150,6 @@ class AuthController extends Controller
             'X-YCare-Device-Id', session()->getId() ?: request()->ip()
         ));
     }
-
-    // /**
-    //  * @param GoogleAccountCheckRequest $request
-    //  * @return JsonResponse
-    //  */
-    // public function checkGoogleId(GoogleAccountCheckRequest $request): JsonResponse
-    // {
-    //     $userConnectGoogle = User::query()->where('google_id', $request->get('google_id'))->first();
-
-    //     if (empty($userConnectGoogle)) {
-    //         return $this->response(Codes::S1000(), [
-    //             'status' => false,
-    //             'google_id' => $request->get('google_id'),
-    //         ]);
-    //     }
-
-    //     $userConnectGoogle->load('userInfo');
-    //     $isUser = str_contains($request->userAgent(), '(dart:io)');
-    //     $firebaseToken = $request->get('firebase_token');
-
-    //     return $this->getUserInfo($userConnectGoogle, $isUser, $firebaseToken);
-    // }
-
-    // /**
-    //  * @param GoogleAccountUpdatePhoneRequest $request
-    //  * @return JsonResponse
-    //  */
-    // public function updatePhone(GoogleAccountUpdatePhoneRequest $request): JsonResponse
-    // {
-    //     $phone = $request->get('phone');
-    //     $googleAccount = User::query()->where('google_id', $request->get('google_id'))->exists();
-    //     $user = User::query()->where('username', $request->get('phone'))
-    //         ->where('type', UserType::user())
-    //         ->first();
-
-    //     if (!$user) {
-    //         $setting = Setting::query()->where('key', 'allow_prefix_phone')->first();
-    //         $prefixPhone = $setting?->value ? explode(',', $setting->value) : [];
-
-    //         if (count($prefixPhone) > 0 && !in_array(substr($phone, 0, 3), $prefixPhone)) {
-    //             return $this->response(Codes::E2026());
-    //         }
-
-    //         // Get user by phone number and type
-    //         /** @var User $user */
-    //         $user = User::query()->firstOrNew([
-    //             'username' => $phone,
-    //             'type' => UserType::user()->value,
-    //         ], [
-    //             'status' => UserStatus::registered()->value,
-    //         ]);
-
-    //         // User registered
-    //         if (!in_array($user->status->value, [
-    //             UserStatus::registered()->value,
-    //             UserStatus::otpVerified()->value,
-    //         ], true)) {
-    //             return $this->response(Codes::E1005());
-    //         }
-
-    //         // Update password
-    //         $user->password = Str::random(10);
-    //         $user->assignRole('user');
-    //         $user->save();
-
-    //         // Send OTP into phone number
-    //         $this->otpService->send(
-    //             $user->username, OtpType::register(), $user->id
-    //         );
-
-    //         return $this->response(Codes::S1000(), [
-    //             'otp_type' => OtpType::register()->value,
-    //             'user_id' => $user->id,
-    //         ]);
-    //     } else {
-    //         // Send OTP into phone number
-    //         $otp = $this->otpService->send(
-    //             $user->username, OtpType::connect_google(), $user->id
-    //         );
-
-    //         if ($otp instanceof Codes) {
-    //             return $this->response($otp);
-    //         }
-
-    //         return $this->response(Codes::S1000(), [
-    //             'otp_type' => OtpType::connect_google(),
-    //             'user_id' => $user->id,
-    //         ]);
-    //     }
-    // }
 
     /**
      * @return string
@@ -310,10 +185,46 @@ class AuthController extends Controller
         return $results;
     }
 
+    /**
+     * Get account information
+     *
+     * @return JsonResponse
+     */
     public function getUser(): JsonResponse
     {
         $user = User::query()->find(auth()->user()->id);
 
         return $this->response(ResponseCodes::S1000, UserResource::make($user));
+    }
+
+    /**
+     * Change account password
+     *
+     * @param ChangePasswordRequest $requests
+     * @return JsonResponse
+     */
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $thisUser = auth()->user();
+        if (Hash::check($request->get('current_password'), $thisUser->password)) {
+            $thisUser->update(['password' => bcrypt($request->get('password'))]);
+            return $this->response(ResponseCodes::S1000);
+        }
+        return $this->response(ResponseCodes::E2017);
+    }
+
+    /**
+     * Update information for the account
+     *
+     * @param UpdateUserRequest $request
+     * @return JsonResponse
+     */
+    public function updateUser(UpdateUserRequest $request): JsonResponse
+    {
+        $thisUser = auth()->user();
+        $data = $request->only(['name', 'phone']);
+        $thisUser->update($data);
+
+        return $this->response(ResponseCodes::S1000);
     }
 }
