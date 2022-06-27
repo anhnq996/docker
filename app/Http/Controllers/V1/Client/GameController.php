@@ -15,6 +15,7 @@ use App\Jobs\CreatePlayerJob;
 use App\Http\Requests\Client\UpdatePlayerRequest;
 use App\Http\Requests\Game\DetailGameRequest;
 use App\Jobs\UpdatePlayerJob;
+use Illuminate\Support\Facades\Crypt;
 
 class GameController extends Controller
 {
@@ -35,14 +36,15 @@ class GameController extends Controller
      */
     public function dial(DialRequest $request): JsonResponse
     {
+        $phone = Crypt::decryptString($request->get('token'));
         // check turn
-        if (Redis::exists($request->get('game_id') . '_' . $request->get('phone'))) {
-            if (!Redis::get($request->get('game_id') . '_' . $request->get('phone'))) {
+        if (Redis::exists($request->get('game_id') . '_' . $phone)) {
+            if (!Redis::get($request->get('game_id') . '_' . $phone)) {
                 return $this->response(ResponseCodes::E2016);
             }
         }
 
-        $remainTurn = Redis::get($request->get('game_id') . '_' . $request->get('phone')) - 1;
+        $remainTurn = Redis::get($request->get('game_id') . '_' . $phone) - 1;
 
         $rewardID = $this->createRedis($request->get('game_id'));
 
@@ -60,10 +62,10 @@ class GameController extends Controller
                 if (Redis::exists($request->get('game_id') . '_reward_' . $rewardID)) {
                     $remainTurn = $remainTurn + Redis::get($request->get('game_id') . '_reward_' . $rewardID);
 
-                    UpdatePlayerJob::dispatch($remainTurn, $request->get('phone'), $request->get('game_id'));
+                    UpdatePlayerJob::dispatch($remainTurn, $phone, $request->get('game_id'));
                 } else {
-                    if (Redis::exists('game_' . $request->get('game_id') . '_' . $request->get('phone'))) {
-                        $winner = explode('/', Redis::get('game_' . $request->get('game_id') . '_' . $request->get('phone')));
+                    if (Redis::exists('game_' . $request->get('game_id') . '_' . $phone)) {
+                        $winner = explode('/', Redis::get('game_' . $request->get('game_id') . '_' . $phone));
 
                         CreateWinnnerJob::dispatch($rewardID, $request->get('game_id'), $winner[0], $winner[1], $winner[2]);
                     }
@@ -71,7 +73,7 @@ class GameController extends Controller
             }
         }
 
-        Redis::set($request->get('game_id') . '_' . $request->get('phone'), $remainTurn);
+        Redis::set($request->get('game_id') . '_' . $phone, $remainTurn);
 
         return $this->response(ResponseCodes::S1000, [
             'id'      => $rewardID,
@@ -101,6 +103,7 @@ class GameController extends Controller
 
         return $this->response(ResponseCodes::S1000, [
             'turn'  => Redis::get($request->get('game_id') . '_' . $request->get('phone')),
+            'token' => Crypt::encryptString($request->get('phone')),
         ]);
     }
 
