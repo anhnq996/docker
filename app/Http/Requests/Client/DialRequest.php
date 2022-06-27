@@ -25,7 +25,7 @@ class DialRequest extends FormRequest
     {
         return [
             'game_id' => 'required|exists:games,id',
-            'phone'   => 'required|phone_format',
+            'token'   => 'required',
         ];
     }
 }
