@@ -23,3 +23,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('change_password');
     Route::post('/update-user', [AuthController::class, 'updateUser'])->name('update_user');
 });
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+});
