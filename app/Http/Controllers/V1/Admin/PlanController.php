@@ -118,10 +118,12 @@ class PlanController extends Controller
     {
         $keyword = $request->get('keyword') ?? null;
 
-        return $this->response(ResponseCodes::S1000, Plan::query()->select(['id', 'name', 'price'])
-            ->when($keyword, function ($query) use ($keyword) {
-                $query->where('name', 'LIKE', '%' . $keyword . '%');
-            })->get()
+        return $this->response(
+            ResponseCodes::S1000,
+            Plan::query()->select(['id', 'name', 'price'])
+                ->when($keyword, function ($query) use ($keyword) {
+                    $query->where('name', 'LIKE', '%' . $keyword . '%');
+                })->get()
         );
     }
 }
