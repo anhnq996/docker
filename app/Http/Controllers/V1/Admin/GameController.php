@@ -154,7 +154,7 @@ class GameController extends Controller
 
         Game::query()->find($request->get('id'))->update($data);
 
-        $rewards = $request->get('reward');
+        $rewards = $request->get('rewards');
         if ($rewards) {
             $gameRewards = GameReward::query()->where('game_id', $request->get('id'))->pluck('id');
 
@@ -170,7 +170,6 @@ class GameController extends Controller
             GameReward::query()->where('game_id', $request->get('id'))->delete();
 
             $rewardInsert = [];
-            $rewards      = $request->reward;
             foreach ($rewards as $reward) {
                 if ($request->file('image')) {
                     $image           = $this->uploadImage($request->file('image'), 'image');
