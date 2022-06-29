@@ -176,7 +176,7 @@ class GameController extends Controller
                     $reward['image'] = $image['path'];
                 }
                 $rewardInsert[] = [
-                    'name'       => $reward['quantity'],
+                    'name'       => $reward['name'],
                     'image'      => $reward['image'],
                     'quantity'   => $reward['quantity'],
                     'percent'    => $reward['percent'],
