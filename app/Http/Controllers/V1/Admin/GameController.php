@@ -159,7 +159,7 @@ class GameController extends Controller
             $gameRewards = GameReward::query()->where('game_id', $request->get('id'))->pluck('id');
 
             foreach ($gameRewards as $reward) {
-                if (Redis::get('reward_' . $reward)) {
+                if (Redis::exists('reward_' . $reward)) {
                     Redis::del('reward_' . $reward);
                 }
             }
