@@ -79,7 +79,7 @@ class CreateGameRequest extends FormRequest
             $validator->after(function ($validator) use ($rewards) {
                 $precent = 0;
                 foreach ($rewards as $reward) {
-                    $precent += $reward['percent'];
+                    $precent += ($reward['percent'] ?? 0);
                 }
                 if ($precent > 100 || $precent < 100) {
                     $validator->errors()->add('percent', __('validation.percent'));

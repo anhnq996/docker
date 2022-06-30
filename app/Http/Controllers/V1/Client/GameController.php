@@ -115,9 +115,6 @@ class GameController extends Controller
      */
     private function createRedis($gameID)
     {
-        //clear key
-        Redis::del(Redis::keys('key:*'));
-
         $rewardID  = explode(',', (Redis::get('game_' . $gameID)));
         $arr       = [];
         $percent   = 0;
@@ -138,6 +135,11 @@ class GameController extends Controller
         });
 
         $rewardID = Redis::get("key:" . rand(1, $percent));
+
+        // clear key
+        foreach ($arr as $key => $value) {
+            Redis::del("key:$key");
+        }
 
         return $rewardID;
     }
