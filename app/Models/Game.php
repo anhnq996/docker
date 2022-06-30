@@ -200,6 +200,7 @@ class Game extends Model
         ->when($status, function ($query) use ($status) {
             $query->where('status', $status);
         })
+        ->orderByDesc('id')
         ->paginate($limit);
 
     }
