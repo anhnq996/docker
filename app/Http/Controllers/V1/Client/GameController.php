@@ -39,12 +39,12 @@ class GameController extends Controller
         $phone = Crypt::decryptString($request->get('token'));
         // check turn
         if (Redis::exists($request->get('game_id') . '_' . $phone)) {
-            if (!Redis::get($request->get('game_id') . '_' . $phone)) {
+            if (!Redis::get($request->get('game_id') . '_' . $phone) || Redis::get($request->get('game_id') . '_' . $phone) <= 0) {
                 return $this->response(ResponseCodes::E2016);
             }
         }
 
-        $remainTurn = Redis::get($request->get('game_id') . '_' . $phone) - 1;
+        $remainTurn = (int) (Redis::get($request->get('game_id') . '_' . $phone)) - 1;
 
         $rewardID = $this->createRedis($request->get('game_id'));
 
@@ -52,7 +52,7 @@ class GameController extends Controller
             $rewards  = explode('/', Redis::get("reward_$rewardID"));
             if ($rewards[0] == 0) {
                 Redis::del("reward_$rewardID");
-                $this->dial($request->get('game_id'));
+                $rewardID = $this->createRedis($request->get('game_id'));
             }
 
             if ($rewards[0] > 0) {
@@ -116,6 +116,7 @@ class GameController extends Controller
     private function createRedis($gameID)
     {
         $rewardID  = explode(',', (Redis::get('game_' . $gameID)));
+        $reward    = null;
         $arr       = [];
         $percent   = 0;
         foreach ($rewardID as $id) {
@@ -128,20 +129,24 @@ class GameController extends Controller
             }
         }
 
+        if (!$arr) {
+            return $reward;
+        }
+
         Redis::pipeline(function ($pipe) use ($arr) {
             foreach ($arr as $key => $value) {
                 $pipe->set("key:$key", $value);
             }
         });
 
-        $rewardID = Redis::get("key:" . rand(1, $percent));
+        $reward = Redis::get("key:" . rand(1, $percent));
 
         // clear key
         foreach ($arr as $key => $value) {
             Redis::del("key:$key");
         }
 
-        return $rewardID;
+        return $reward;
     }
 
         /**
