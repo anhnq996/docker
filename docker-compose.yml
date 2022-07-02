@@ -14,12 +14,6 @@ services:
     depends_on:
       - mysql-db
       - redis
-    volumes:
-      - ".:/var/www/html"
-      - "/var/www/html/.docker"
-      - "/var/www/html/.git"
-      - "/var/www/html/.idea"
-      - "/var/www/html/.vscode"
     ports:
       - "8080:8080"
     networks:
