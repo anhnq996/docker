@@ -14,7 +14,6 @@ services:
     depends_on:
       - mysql-db
       - redis
-      - mailhog
     volumes:
       - ".:/var/www/html"
       - "/var/www/html/.docker"
