@@ -70,15 +70,6 @@ services:
         retries: 3
         timeout: 5s
 
-  mailhog:
-    image: mailhog/mailhog
-    container_name: mailhog-freelancer
-    restart: unless-stopped
-    ports:
-      - "28026:8025"
-    networks:
-      - backend
-
 networks:
   backend:
     name: wheel-network
