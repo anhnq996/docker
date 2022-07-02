@@ -7,15 +7,15 @@ services:
       args:
           - "ENV=development"
     env_file:
-      - .env.docker
-    image: freelancer-api:dev
-    container_name: freelancer-api
+      - .env
+    image: recuilt-api:dev
+    container_name: recuilt-api
     restart: unless-stopped
     depends_on:
       - mysql-db
       - redis
     ports:
-      - "8080:8080"
+      - "80:8080"
     networks:
       - backend
 
@@ -24,12 +24,12 @@ services:
     container_name: mysql-db
     restart: unless-stopped
     environment:
-      - "MYSQL_ROOT_PASSWORD=RUBZ+NdoIb+cD8Lh3l1Nj3p"
-      - "MYSQL_PASSWORD=An0thrS3crt"
-      - "MYSQL_USER=freelancer_user"
-      - "MYSQL_DATABASE=jlwai+JBnCasdZlVtWj3"
+      - "MYSQL_ROOT_PASSWORD=${DB_PASSWORD}"
+      - "MYSQL_PASSWORD=${DB_PASSWORD}"
+      - "MYSQL_USER=${DB_USERNAME}"
+      - "MYSQL_DATABASE=${DB_DATABASE}"
     volumes:
-        - 'mysql-storage:/var/lib/mysql'
+        - '~/data/db:/var/lib/mysql'
     ports:
       - "3306:3306"
     networks:
@@ -37,21 +37,22 @@ services:
 
   phpmyadmin:
     image: phpmyadmin
-    container_name: phpmyadmin-freelancer
+    container_name: phpmyadmin-recuilt
     restart: unless-stopped
     depends_on:
       - mysql-db
     ports:
      - "20082:80"
     environment:
-      - "PMA_HOST=mariadb-bootstrap"
-      - "PMA_USER=freelancer_user"
-      - "PMA_PASSWORD=jlwai+JBnCasdZlVtWj3"
+      - "PMA_HOST=mysql-db"
+      - "PMA_USER=${DB_USERNAME}"
+      - "PMA_PASSWORD=${DB_PASSWORD}"
     networks:
       - backend
 
   redis:
     image: redis:latest
+    container_name: redis-recuilt
     environment:
         TZ: Asia/Ho_Chi_Minh
     volumes:
@@ -65,7 +66,7 @@ services:
 
 networks:
   backend:
-    name: wheel-network
+    name: recuilt-network
     driver: bridge
 
 volumes:
