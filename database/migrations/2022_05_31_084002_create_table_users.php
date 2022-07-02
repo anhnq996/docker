@@ -20,9 +20,6 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone')->nullable();
             $table->string('password');
-            $table->unsignedBigInteger('plan_id');
-            $table->date('start_date');
-            $table->date('end_date');
             $table->timestamps();
         });
     }

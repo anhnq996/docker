@@ -8,11 +8,11 @@ services:
           - "ENV=development"
     env_file:
       - .env.docker
-    image: wheel-api:dev
-    container_name: wheel-api
+    image: freelancer-api:dev
+    container_name: freelancer-api
     restart: unless-stopped
     depends_on:
-      - mariadb-bootstrap
+      - mysql-db
       - redis
       - mailhog
     volumes:
@@ -26,70 +26,34 @@ services:
     networks:
       - backend
 
-  mariadb-bootstrap:
-    image: bitnami/mariadb-galera
-    container_name: mariadb-bootstrap-wheel
+  mysql-db:
+    image: mysql:8
+    container_name: mysql-db
     restart: unless-stopped
     environment:
-      - "MARIADB_GALERA_FORCE_SAFETOBOOTSTRAP=yes"
-      - "MARIADB_GALERA_CLUSTER_NAME=wheel-cluster"
-      - "MARIADB_GALERA_CLUSTER_BOOTSTRAP=yes"
-      - "MARIADB_GALERA_MARIABACKUP_USER=wheel_backup_user"
-      - "MARIADB_GALERA_MARIABACKUP_PASSWORD=XRG3pTI6GS4cSOBmoJa7WHj9"
-      - "MARIADB_REPLICATION_USER=wheel_replication_user"
-      - "MARIADB_REPLICATION_PASSWORD=MxOIX+deAqKp2n9uQlv1lr5a"
-      - "MARIADB_ROOT_PASSWORD=RUBZ/+NdoIb+cD8Lh3l1Nj3p"
-      - "MARIADB_DATABASE=wheel_db"
-      - "MARIADB_USER=wheel_user"
-      - "MARIADB_PASSWORD=jlwai+JBnCasdZlVtWj3o1s0"
-    healthcheck:
-      test: ['CMD', '/opt/bitnami/scripts/mariadb-galera/healthcheck.sh']
-      interval: 15s
-      timeout: 5s
-      retries: 6
+      - "MYSQL_ROOT_PASSWORD=RUBZ+NdoIb+cD8Lh3l1Nj3p"
+      - "MYSQL_PASSWORD=An0thrS3crt"
+      - "MYSQL_USER=freelancer_user"
+      - "MYSQL_DATABASE=jlwai+JBnCasdZlVtWj3"
     volumes:
-        - 'mariadb-storage:/var/lib/mysql'
+        - 'mysql-storage:/var/lib/mysql'
     ports:
-      - "3307:3306"
-    networks:
-      - backend
-
-  mariadb-node:
-    image: bitnami/mariadb-galera
-    container_name: mariadb-node-wheel
-    restart: unless-stopped
-    depends_on:
-      - mariadb-bootstrap
-    environment:
-      - "MARIADB_GALERA_CLUSTER_NAME=wheel-cluster"
-      - "MARIADB_GALERA_CLUSTER_ADDRESS=gcomm://mariadb-bootstrap:4567,0.0.0.0:4567"
-      - "MARIADB_GALERA_MARIABACKUP_USER=wheel_backup_user"
-      - "MARIADB_GALERA_MARIABACKUP_PASSWORD=XRG3pTI6GS4cSOBmoJa7WHj9"
-      - "MARIADB_REPLICATION_USER=wheel_replication_user"
-      - "MARIADB_REPLICATION_PASSWORD=MxOIX+deAqKp2n9uQlv1lr5a"
-      - "MARIADB_ROOT_PASSWORD=RUBZ/+NdoIb+cD8Lh3l1Nj3p"
-    healthcheck:
-      test: ['CMD', '/opt/bitnami/scripts/mariadb-galera/healthcheck.sh']
-      interval: 15s
-      timeout: 5s
-      retries: 6
-    volumes:
-      - "./.docker/data/mariadb/node:/bitnami/mariadb"
+      - "3306:3306"
     networks:
       - backend
 
   phpmyadmin:
     image: phpmyadmin
-    container_name: phpmyadmin-wheel
+    container_name: phpmyadmin-freelancer
     restart: unless-stopped
     depends_on:
-      - mariadb-bootstrap
+      - mysql-db
     ports:
      - "20082:80"
     environment:
       - "PMA_HOST=mariadb-bootstrap"
-      - "PMA_USER=wheel_user"
-      - "PMA_PASSWORD=jlwai+JBnCasdZlVtWj3o1s0"
+      - "PMA_USER=freelancer_user"
+      - "PMA_PASSWORD=jlwai+JBnCasdZlVtWj3"
     networks:
       - backend
 
@@ -106,46 +70,9 @@ services:
         retries: 3
         timeout: 5s
 
-#  redis-cluster:
-#    image: bitnami/redis-cluster
-#    container_name: redis-cluster-wheel
-#    restart: unless-stopped
-#    depends_on:
-#      - redis-node
-#    environment:
-#      - "ALLOW_EMPTY_PASSWORD=yes"
-#      - "REDIS_CLUSTER_REPLICAS=1"
-#      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
-#      - "REDIS_CLUSTER_CREATOR=yes"
-#    networks:
-#      - backend
-
-#  redis-node:
-#    image: bitnami/redis-cluster
-#    deploy:
-#      mode: replicated
-#      replicas: 7
-#    restart: unless-stopped
-#    environment:
-#      - "ALLOW_EMPTY_PASSWORD=yes"
-#      - "REDIS_NODES=wheel_redis-node_1 wheel_redis-node_2 wheel_redis-node_3 wheel_redis-node_4 wheel_redis-node_5 wheel_redis-node_6 wheel_redis-node_7 redis-cluster"
-#    networks:
-#      - backend
-
-  redisinsight:
-    image: redislabs/redisinsight
-    container_name: redisinsight-wheel
-    restart: unless-stopped
-    depends_on:
-      - redis
-    ports:
-      - "28002:8001"
-    networks:
-      - backend
-
   mailhog:
     image: mailhog/mailhog
-    container_name: mailhog-wheel
+    container_name: mailhog-freelancer
     restart: unless-stopped
     ports:
       - "28026:8025"
@@ -158,7 +85,7 @@ networks:
     driver: bridge
 
 volumes:
-    mariadb-storage:
+    mysql-storage:
         driver: local
     redis-storage:
         driver: local

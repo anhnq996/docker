@@ -160,5 +160,4 @@ return [
         'password'              => 'Mật khẩu',
         'password_confirmation' => 'Mật khẩu xác nhận',
     ],
-
 ];
